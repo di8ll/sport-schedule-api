@@ -267,25 +267,17 @@ const HomePage = () => {
       alert("Gagal mengambil data. Pastikan API berjalan dan CORS diaktifkan.");
     }
   };
-
-  // ⚠️ PENTING:
-  // Sebelumnya id volley internal = "volley" dan volley external = "volly".
-  // Perbedaan cuma 1 huruf (typo-based), jadi gampang ketuker / bikin bingung
-  // saat maintenance, dan kalau di halaman /sport/:id ada logic yang nge-lowercase
-  // atau nge-trim, dua id itu bisa dianggap "mirip" dan gampang salah ambil data.
-  // Sekarang dibikin eksplisit beda: "volley-internal" vs "volley-eksternal"
-  // supaya route-nya JELAS berbeda dan tidak akan pernah tertukar.
   const categoryGroups = {
     internal: [
       { id: "futsal", label: "Futsal", icon: "⚽" },
-      { id: "volley-internal", label: "Volley", icon: "🏐" },
+      { id: "volley", label: "Volley", icon: "🏐" },
       { id: "catur", label: "Catur", icon: "♟️" },
       { id: "badminton", label: "Badminton", icon: "🏸" },
       { id: "tenismeja", label: "Tenis Meja", icon: "🏓" },
       { id: "padel", label: "Padel", icon: "🎾" },
     ],
     external: [
-      { id: "volley-eksternal", label: "Volley", icon: "🏐" },
+      { id: "volly", label: "Volly", icon: "🏐" },
       { id: "basket", label: "Basket", icon: "🏀" },
     ],
   };

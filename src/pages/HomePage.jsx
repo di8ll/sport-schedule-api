@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-
 // ============= INDORAMA BRAND TOKENS =============
 const EVENT_DATE = new Date("2026-07-17T00:00:00");
 
@@ -195,7 +194,7 @@ function TimelineItem({ event, index }) {
 
 function TimelineSection() {
   return (
-    <section className="w-full pt-28 sm:pt-32 pb-16 sm:pb-24 relative bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden">
+    <section className="w-full py-16 sm:py-24 relative bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-12 sm:mb-16">
           <span className="inline-block text-[10px] font-black uppercase tracking-[0.3em] text-[#ED1C24] mb-3">
@@ -297,11 +296,11 @@ const HomePage = () => {
       </button>
 
       {/* LOGO INDORAMA */}
-      <div className="fixed top-2 left-2 z-[9999]">
+      <div className="fixed top-[-30px] sm:top-[-40px] left-0 sm:left-2 z-50 pointer-events-none">
         <img
-          src="/logo_ifd.png"
+          src="/logo_indorama.png"
           alt="Indorama"
-          className="w-28 sm:w-40 drop-shadow-md block"
+          className="w-28 sm:w-40 drop-shadow-md pointer-events-auto block"
         />
       </div>
 
@@ -359,9 +358,6 @@ const HomePage = () => {
           </div>
         </div>
       )}
-
-      {/* ================= TIMELINE SECTION ================= */}
-      <TimelineSection />
 
       {/* ================= HERO SECTION ================= */}
       <div
@@ -451,6 +447,9 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* ================= TIMELINE SECTION ================= */}
+      <TimelineSection />
 
       <footer className="w-full text-center py-5 border-t-2 border-slate-200 bg-white mt-0">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">

@@ -2,58 +2,76 @@ export const sportTheme = {
   futsal: {
     name: "Futsal",
     icon: "⚽",
-    color: "#00308F", // Indorama Navy
+    color: "#00308F",
     secondaryColor: "#CFE1F4",
-   banner: "/images/futsal.png",// 👈 Arahkan ke file gambar baru kamu
-   bgPos: "center 10%", // 👈 Tambahkan properti baru di sini
-    type: "Sport"
+    banner: "/images/futsal.png",
+    bgPos: "center 10%",
+    type: "Sport",
+    isExternal: false,
   },
   volley: {
     name: "Volley",
     icon: "🏐",
-    color: "#ED1C24", // Indorama Red
+    color: "#ED1C24",
     secondaryColor: "#FCE8E6",
     banner: "/images/voli.png",
-    type: "Sport"
+    type: "Sport",
+    isExternal: false,
   },
   catur: {
     name: "Catur",
     icon: "♟️",
-    color: "#111827", // Dark Slate
+    color: "#111827",
     secondaryColor: "#E5E7EB",
     banner: "/images/catur.png",
-    type: "Sport"
+    type: "Sport",
+    isExternal: false,
   },
   badminton: {
     name: "Badminton",
     icon: "🏸",
-    color: "#10B981", // Emerald Green
+    color: "#10B981",
     secondaryColor: "#D1FAE5",
     banner: "/images/bultang.png",
-    type: "Sport"
+    type: "Sport",
+    isExternal: false,
   },
   tenismeja: {
     name: "Tenis Meja",
     icon: "🏓",
-    color: "#F97316", // Orange
+    color: "#F97316",
     secondaryColor: "#FFEDD5",
     banner: "/images/pingpong.png",
-    type: "Sport"
+    type: "Sport",
+    isExternal: false,
   },
   padel: {
     name: "Padel",
     icon: "🎾",
-    color: "#8B5CF6", // Purple
+    color: "#8B5CF6",
     secondaryColor: "#EDE9FE",
     banner: "/images/padel.png",
-    type: "Sport"
+    type: "Sport",
+    isExternal: false,
+  },
+
+  // ============= EXTERNAL (Antar Sekolah) — banner dihilangin dulu =============
+  volly: {
+    name: "Volly",
+    icon: "🏐",
+    color: "#ED1C24",
+    secondaryColor: "#FCE8E6",
+    banner: null, // sengaja dikosongin dulu
+    type: "Sport",
+    isExternal: true,
   },
   basket: {
     name: "Basket",
     icon: "🏀",
-    color: "#B45309", // Amber/Amber Dark
+    color: "#B45309",
     secondaryColor: "#FEF3C7",
-    banner: "/images/basket.png",
-    type: " Sport"
-  }
+    banner: null, // sengaja dikosongin dulu
+    type: "Sport",
+    isExternal: true,
+  },
 };

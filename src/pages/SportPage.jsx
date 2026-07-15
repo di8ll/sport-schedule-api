@@ -20,9 +20,9 @@ const SportPage = () => {
   // Fungsi Helper untuk memetakan KODE CLUB dari database ke NAMA FILE LOGO di public/logos/
   const getLogoFileName = (teamCode) => {
     if (!teamCode) return "default-club.png";
-    
+
     const code = teamCode.toUpperCase().trim();
-    
+
     // Pemetaan singkatan / kode tim ke nama file gambar asli Anda
     switch (code) {
       case "HO":
@@ -46,63 +46,57 @@ const SportPage = () => {
     }
   };
 
-// Fungsi bantu: bersihkan string jadi format polos (lowercase, tanpa spasi/underscore/hyphen)
-// supaya "Tenis Meja", "tenis_meja", "tenis-meja", "TENIS MEJA" semua dianggap SAMA
-const normalize = (str) => {
-  if (!str) return "";
-  return str
-    .toLowerCase()
-    .replace(/[_\-\s]+/g, ""); // hapus semua underscore, hyphen, dan spasi
-};
+  // Fungsi bantu: bersihkan string jadi format polos (lowercase, tanpa spasi/underscore/hyphen)
+  // supaya "Tenis Meja", "tenis_meja", "tenis-meja", "TENIS MEJA" semua dianggap SAMA
+  const normalize = (str) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .replace(/[_\-\s]+/g, ""); // hapus semua underscore, hyphen, dan spasi
+  };
 
-const loadMatch = async () => {
-  try {
-    let baseCategory = category
-      ? category.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
-      : "";
+  const loadMatch = async () => {
+    try {
+      let baseCategory = category
+        ? category.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+        : "";
 
-    const normalizedCategory = normalize(baseCategory);
+      const normalizedCategory = normalize(baseCategory);
 
-    // Selalu ambil semua data, jangan filter sport_type di backend
-   const res = await api.get(`/matches`, { 
-      params: { _t: Date.now() }, 
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+      // Selalu ambil semua data, jangan filter sport_type di backend
+      const res = await api.get(`/matches`, { params: {} });
+
+      if (res.data && res.data.length > 0) {
+        const rawData = res.data.map((m) => ({
+          id: m.id,
+          date: m.match_date,
+          time: m.match_time,
+          stage: m.stage || "Babak Penyisihan",
+          sportType: m.sport_type,
+          teamA: m.club_a?.code ?? m.club_a?.name ?? "Unknown Team",
+          teamB: m.club_b?.code ?? m.club_b?.name ?? "Unknown Team",
+          scoreA: m.score_a ?? 0,
+          scoreB: m.score_b ?? 0,
+          venue: m.venue,
+          status: m.status,
+        }));
+
+        const finalData = rawData.filter((m) =>
+          normalize(m.sportType).includes(normalizedCategory)
+        );
+
+        setMatches(finalData);
+        return;
       }
-    });
-
-    if (res.data && res.data.length > 0) {
-      const rawData = res.data.map((m) => ({
-        id: m.id,
-        date: m.match_date,
-        time: m.match_time,
-        stage: m.stage || "Babak Penyisihan",
-        sportType: m.sport_type,
-        teamA: m.club_a?.code ?? m.club_a?.name ?? "Unknown Team",
-        teamB: m.club_b?.code ?? m.club_b?.name ?? "Unknown Team",
-        scoreA: m.score_a ?? 0,
-        scoreB: m.score_b ?? 0,
-        venue: m.venue,
-        status: m.status,
-      }));
-
-      const finalData = rawData.filter((m) =>
-        normalize(m.sportType).includes(normalizedCategory)
-      );
-
-      setMatches(finalData);
-      return;
+      setMatches([]);
+    } catch (err) {
+      console.warn("Gagal mengambil data dari API:", err.message);
+      setMatches([]);
+    } finally {
+      setLoading(false);
     }
-    setMatches([]);
-  } catch (err) {
-    console.warn("Gagal mengambil data dari API:", err.message);
-    setMatches([]);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
   useEffect(() => {
     setLoading(true);
     loadMatch();
@@ -121,13 +115,13 @@ const loadMatch = async () => {
   const theme = sportTheme[category] || sportTheme.futsal;
 
   // 1. Filter data match berdasarkan kategori Tab aktif
-const filteredMatches = matches.filter((m) => {
-  const status = m.status?.toUpperCase().trim();
-  if (activeTab === "hasil") return status === "FINISHED";
-  if (activeTab === "live") return status === "LIVE";
-  if (activeTab === "jadwal") return status === "UPCOMING";
-  return true;
-});
+  const filteredMatches = matches.filter((m) => {
+    const status = m.status?.toUpperCase().trim();
+    if (activeTab === "hasil") return status === "FINISHED";
+    if (activeTab === "live") return status === "LIVE";
+    if (activeTab === "jadwal") return status === "UPCOMING";
+    return true;
+  });
   // 2. Tentukan batasan item per halaman (Maksimal 3 item)
   const ITEMS_PER_PAGE = 3;
   const totalPages = Math.ceil(filteredMatches.length / ITEMS_PER_PAGE);
@@ -160,10 +154,16 @@ const filteredMatches = matches.filter((m) => {
         {/* ================= 1. HERO BANNER ================= */}
         <div
           className="relative h-56 sm:h-64 md:h-72 w-full flex items-center p-6 sm:p-12 text-white bg-cover transition-all duration-500"
-          style={{
-            backgroundImage: `linear-gradient(to right, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.35)), url('${theme.banner}')`,
-            backgroundPosition: theme.bgPos || "center 25%",
-          }}
+          style={
+            theme.banner
+              ? {
+                  backgroundImage: `linear-gradient(to right, rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.35)), url('${theme.banner}')`,
+                  backgroundPosition: theme.bgPos || "center 25%",
+                }
+              : {
+                  background: `linear-gradient(135deg, ${theme.color} 0%, ${theme.color}CC 60%, #0F172A 100%)`,
+                }
+          }
         >
           <div className="absolute top-5 left-6 right-6 flex items-center gap-4 z-10 w-full max-w-7xl mx-auto">
             <button
@@ -185,7 +185,7 @@ const filteredMatches = matches.filter((m) => {
               <span className="text-3xl sm:text-5xl drop-shadow-md">{theme.icon}</span>
             </div>
             <p className="text-xs sm:text-sm font-medium tracking-wide text-white/90 mt-1.5 drop-shadow-sm">
-              Turnamen Antar Divisi
+              {theme.isExternal ? "Turnamen Antar Sekolah" : "Turnamen Antar Divisi"}
             </p>
             <span className="text-[10px] font-bold uppercase tracking-widest bg-white/20 backdrop-blur px-4 py-1 rounded-full border border-white/10 mt-2.5 shadow-sm">
               {theme.type || "TEAM SPORT"}
@@ -313,12 +313,12 @@ const filteredMatches = matches.filter((m) => {
                           <span className="text-[10px] font-extrabold text-[#008080] tracking-widest uppercase bg-teal-50/60 px-3 py-1 rounded-full border-2 border-teal-200/80 text-center">
                             {match.stage}
                           </span>
-                          
+
                           {/* Badge Klasifikasi Putra / Putri Berdasarkan String sportType dari DB */}
                           {match.sportType && (match.sportType.toLowerCase().includes("putra") || match.sportType.toLowerCase().includes("putri")) && (
                             <span className={`text-[10px] font-extrabold tracking-widest uppercase px-3 py-1 rounded-full border-2 text-center ${
-                              match.sportType.toLowerCase().includes("putri") 
-                                ? "bg-pink-50 border-pink-200 text-pink-700" 
+                              match.sportType.toLowerCase().includes("putri")
+                                ? "bg-pink-50 border-pink-200 text-pink-700"
                                 : "bg-blue-50 border-blue-200 text-blue-700"
                             }`}>
                               {match.sportType.toLowerCase().includes("putri") ? "👩 Putri" : "👨 Putra"}
@@ -330,11 +330,11 @@ const filteredMatches = matches.filter((m) => {
                           {/* Team A */}
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-2 shadow-sm overflow-hidden shrink-0">
-                              <img 
+                              <img
                                 src={`/logos/${getLogoFileName(match.teamA)}`}
                                 alt={match.teamA}
                                 className="w-full h-full object-contain p-1.5"
-                                onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }} 
+                                onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
                               />
                             </div>
                             <span className="font-extrabold text-slate-800 text-xs tracking-wide uppercase line-clamp-2 min-h-[2.5rem] flex items-center justify-center">
@@ -372,7 +372,7 @@ const filteredMatches = matches.filter((m) => {
                           {/* Team B */}
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-2 shadow-sm overflow-hidden shrink-0">
-                              <img 
+                              <img
                                 src={`/logos/${getLogoFileName(match.teamB)}`}
                                 alt={match.teamB}
                                 className="w-full h-full object-contain p-1.5"
@@ -468,7 +468,7 @@ const filteredMatches = matches.filter((m) => {
               <div className="flex items-center justify-between bg-slate-50 rounded-2xl p-4 border border-slate-100">
                 <div className="w-[35%] flex flex-col items-center text-center">
                   <div className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
-                    <img 
+                    <img
                       src={`/logos/${getLogoFileName(selectedMatch.teamA)}`}
                       alt={selectedMatch.teamA}
                       className="w-full h-full object-contain p-1"
@@ -501,7 +501,7 @@ const filteredMatches = matches.filter((m) => {
 
                 <div className="w-[35%] flex flex-col items-center text-center">
                   <div className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
-                    <img 
+                    <img
                       src={`/logos/${getLogoFileName(selectedMatch.teamB)}`}
                       alt={selectedMatch.teamB}
                       className="w-full h-full object-contain p-1"

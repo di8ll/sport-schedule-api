@@ -362,66 +362,67 @@ const HomePage = () => {
       )}
 
       {/* ================= HERO SECTION ================= */}
-      <div
-        className="relative w-full min-h-[100svh] flex flex-col items-center justify-center text-center px-4 sm:px-6 py-16 overflow-hidden bg-cover bg-center"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(248, 250, 252, 1)), url('/stadium-banner.jpg')`,
-        }}
-      >
+<div
+  className="relative w-full min-h-[100svh] flex flex-col items-center justify-center text-center px-4 sm:px-6 py-16 overflow-hidden bg-cover bg-center"
+  style={{
+    backgroundImage: `linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(248, 250, 252, 1)), url('/stadium-banner.jpg')`,
+  }}
+>
         <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-[#00308F]/15 via-transparent to-transparent blur-3xl pointer-events-none" />
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#ED1C24]/10 via-transparent to-transparent blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 w-full max-w-4xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight text-[#00308F] mb-2 uppercase italic drop-shadow-sm leading-tight px-2 mt-20 sm:mt-24">
-            Indorama{" "}
-            <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-[#00308F] to-[#ED1C24]">
-              Founder&apos;s Day
-            </span>
-          </h1>
+<div className="relative z-10 w-full max-w-4xl mx-auto">
+    <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tight text-[#00308F] mb-2 uppercase italic drop-shadow-sm leading-tight px-2 mt-20 sm:mt-24">
+      Indorama{" "}
+      <span className="block sm:inline text-transparent bg-clip-text bg-gradient-to-r from-[#00308F] to-[#ED1C24]">
+        Founder&apos;s Day
+      </span>
+    </h1>
 
-          <p className="text-4xl sm:text-5xl md:text-6xl font-black uppercase italic tracking-wide text-[#ED1C24] mb-8 sm:mb-10">
-            2026
-          </p>
+    <p className="text-4xl sm:text-5xl md:text-6xl font-black uppercase italic tracking-wide text-[#ED1C24] mb-8 sm:mb-10">
+      2026
+    </p>
 
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
-              {["internal", "external"].map((group) => (
-                <button
-                  key={group}
-                  onClick={() => handleGroupChange(group)}
-                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    activeGroup === group
-                      ? "bg-[#00308F] text-white shadow-md"
-                      : "text-[#8B8D8E] hover:text-[#00308F]"
-                  }`}
-                >
-                  {group === "internal" ? "Internal" : "External"}
-                </button>
-              ))}
-            </div>
-          </div>
+    {/* Selektor Internal/External */}
+    <div className="flex justify-center mb-6">
+      <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
+        {["internal", "external"].map((group) => (
+          <button
+            key={group}
+            onClick={() => handleGroupChange(group)}
+            className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+              activeGroup === group
+                ? "bg-[#00308F] text-white shadow-md"
+                : "text-[#8B8D8E] hover:text-[#00308F]"
+            }`}
+          >
+            {group === "internal" ? "Internal" : "External"}
+          </button>
+        ))}
+      </div>
+    </div>
 
-          <p className="text-xs font-bold text-[#8B8D8E] uppercase tracking-wider mb-3 animate-bounce">
-            👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇
-          </p>
+    <p className="text-xs font-bold text-[#8B8D8E] uppercase tracking-wider mb-3 animate-bounce">
+      👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇
+    </p>
 
-          <div className="mb-8 sm:mb-10 w-full px-2">
-            <div className="flex justify-center items-center gap-3 p-2 bg-white border border-slate-200/80 backdrop-blur-md rounded-xl shadow-xl max-w-2xl mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none">
-              {categoryGroups[activeGroup].map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategoryClick(cat.id)}
-                  className="shrink-0 snap-center flex flex-col items-center justify-center min-w-[72px] sm:min-w-[80px] p-2.5 rounded-xl text-xs font-bold transition-all duration-300 bg-slate-50 border border-slate-200 text-[#00308F] hover:bg-gradient-to-b hover:from-[#CFE1F4] hover:to-[#CFE1F4]/40 hover:border-[#00308F]/40 hover:scale-110 hover:shadow-md"
-                >
-                  <span className="text-2xl mb-1 drop-shadow-sm">{cat.icon}</span>
-                  <span className="text-[9px] uppercase tracking-wider font-black text-slate-700 whitespace-nowrap">
-                    {cat.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
+    {/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
+    <div className="mb-8 sm:mb-10 w-full max-w-2xl mx-auto px-4">
+      <div className="flex sm:justify-center items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none">
+        {categoryGroups[activeGroup].map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => handleCategoryClick(cat.id)}
+            className="shrink-0 snap-start flex flex-col items-center justify-center min-w-[75px] sm:min-w-[90px] p-3 rounded-xl transition-all duration-300 bg-white border border-slate-200 text-[#00308F] hover:bg-gradient-to-b hover:from-[#CFE1F4] hover:to-[#CFE1F4]/40 hover:border-[#00308F]/40 hover:scale-105 active:scale-95 hover:shadow-lg"
+          >
+            <span className="text-2xl mb-1 drop-shadow-sm">{cat.icon}</span>
+            <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-black text-slate-700 whitespace-nowrap">
+              {cat.label}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
           <div className="w-[85vw] max-w-[260px] sm:max-w-xs mx-auto p-3 sm:p-4 rounded-xl bg-white border-2 border-[#ED1C24]/30 backdrop-blur-xl shadow-md relative">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[7px] sm:text-[8px] font-black uppercase tracking-widest bg-[#ED1C24] text-white px-2 sm:px-2.5 py-0.5 rounded shadow-sm whitespace-nowrap">
               Acara Mulai

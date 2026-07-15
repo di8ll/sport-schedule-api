@@ -403,14 +403,13 @@ const HomePage = () => {
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇
           </p>
 
-          {/* ===== FIX RESPONSIVE: cabang olahraga bisa discroll ke samping di HP ===== */}
           <div className="mb-8 sm:mb-10 w-full px-2">
-            <div className="flex justify-start sm:justify-center items-center gap-3 p-2 bg-white border border-slate-200/80 backdrop-blur-md rounded-xl shadow-xl max-w-2xl mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none scroll-px-2">
+            <div className="flex justify-center items-center gap-3 p-2 bg-white border border-slate-200/80 backdrop-blur-md rounded-xl shadow-xl max-w-2xl mx-auto overflow-x-auto sm:overflow-visible snap-x snap-mandatory scrollbar-none">
               {categoryGroups[activeGroup].map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryClick(cat.id)}
-                  className="shrink-0 snap-start sm:snap-center flex flex-col items-center justify-center min-w-[72px] sm:min-w-[80px] p-2.5 rounded-xl text-xs font-bold transition-all duration-300 bg-slate-50 border border-slate-200 text-[#00308F] hover:bg-gradient-to-b hover:from-[#CFE1F4] hover:to-[#CFE1F4]/40 hover:border-[#00308F]/40 hover:scale-110 hover:shadow-md"
+                  className="shrink-0 snap-center flex flex-col items-center justify-center min-w-[72px] sm:min-w-[80px] p-2.5 rounded-xl text-xs font-bold transition-all duration-300 bg-slate-50 border border-slate-200 text-[#00308F] hover:bg-gradient-to-b hover:from-[#CFE1F4] hover:to-[#CFE1F4]/40 hover:border-[#00308F]/40 hover:scale-110 hover:shadow-md"
                 >
                   <span className="text-2xl mb-1 drop-shadow-sm">{cat.icon}</span>
                   <span className="text-[9px] uppercase tracking-wider font-black text-slate-700 whitespace-nowrap">

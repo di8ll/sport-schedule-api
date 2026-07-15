@@ -235,7 +235,7 @@ const SportPage = () => {
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <span className="text-lg sm:text-xl">📅</span>
                   <h3 className="text-sm sm:text-base md:text-lg font-black text-slate-800 tracking-wide uppercase">
-                    Jadwal Hari: <span className="text-teal-700">{activeDate || "-"}</span>
+                    Jadwal Pertandingan : 
                   </h3>
                 </div>
                 <span className="text-[11px] sm:text-xs font-bold px-3 py-1 bg-teal-50 text-teal-700 border border-teal-200 rounded-full w-fit">

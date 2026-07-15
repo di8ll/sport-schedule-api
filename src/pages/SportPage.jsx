@@ -276,16 +276,23 @@ const SportPage = () => {
                       className={`bg-white rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer ${cardBorderStyle}`}
                     >
                       {/* Top Header Card */}
-                      <div className={`flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 ${headerStyle}`}>
-                        <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600 min-w-0">
-                          <span className={`text-[11px] sm:text-xs font-bold font-mono px-1.5 sm:px-2 py-0.5 rounded border shrink-0 ${badgeTimeStyle}`}>
-                            {match.time}
-                          </span>
-                          <span className="text-[10px] sm:text-[11px] font-bold tracking-wide truncate">
-                            📍 {match.venue || "Lapangan GOR PWS"}
-                          </span>
-                        </div>
+<div className={`flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 ${headerStyle}`}>
+  <div className="flex flex-col gap-0.5"> {/* Ubah menjadi column agar tanggal dan jam sejajar */}
+    
+    {/* TAMBAHKAN BARIS INI UNTUK TANGGAL */}
+    <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+      📅 {match.date}
+    </span>
 
+    <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600 min-w-0">
+      <span className={`text-[11px] sm:text-xs font-bold font-mono px-1.5 sm:px-2 py-0.5 rounded border shrink-0 ${badgeTimeStyle}`}>
+        {match.time}
+      </span>
+      <span className="text-[10px] sm:text-[11px] font-bold tracking-wide truncate">
+        📍 {match.venue || "Lapangan GOR PWS"}
+      </span>
+    </div>
+  </div>
                         <div className="shrink-0">
                           {isLive ? (
                             <span className="inline-flex items-center gap-1 bg-red-600 text-white font-extrabold text-[9px] sm:text-[10px] tracking-widest px-2 sm:px-2.5 py-0.5 rounded-full uppercase border border-red-700 shadow-sm whitespace-nowrap">

@@ -346,7 +346,19 @@ const HomePage = () => {
                   {standingsData.map((item, index) => (
                     <tr key={item.id}>
                       <td className="p-2 font-bold">{index + 1}</td>
-                      <td className="p-2 font-bold text-[#00308F]">{item.club.code}</td>
+                      <td className="p-2 font-bold text-[#00308F]">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <img
+                            src={`/logos/${item.club.code.toLowerCase()}.png`}
+                            alt={item.club.code}
+                            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                          <span>{item.club.code}</span>
+                        </div>
+                      </td>
                       <td className="p-2">{item.futsal}</td>
                       <td className="p-2">{item.catur}</td>
                       <td className="p-2">{item.badminton}</td>

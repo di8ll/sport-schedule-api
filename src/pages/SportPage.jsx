@@ -64,7 +64,14 @@ const loadMatch = async () => {
     const normalizedCategory = normalize(baseCategory);
 
     // Selalu ambil semua data, jangan filter sport_type di backend
-    const res = await api.get(`/matches`, { params: {} });
+   const res = await api.get(`/matches`, { 
+      params: { _t: Date.now() }, 
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
 
     if (res.data && res.data.length > 0) {
       const rawData = res.data.map((m) => ({

@@ -110,19 +110,19 @@ const [activeTab, setActiveTab] = useState(() => {
 
   // Reset page pagination ketika user mengubah tab menu atas
 // 1. Simpan Tab ke LocalStorage saat tab atau kategori berubah
-useEffect(() => {
-  localStorage.setItem(`activeTab_${category}`, activeTab);
-}, [activeTab, category]);
+    useEffect(() => {
+      localStorage.setItem(`activeTab_${category}`, activeTab);
+    }, [activeTab, category]);
 
-// 2. Reset Pagination saat kategori berubah (Penting!)
-useEffect(() => {
-  setCurrentPage(0);
-}, [category]);
+    // 2. Reset Pagination saat kategori berubah (Penting!)
+    useEffect(() => {
+      setCurrentPage(0);
+    }, [category]);
 
-// 3. Reset Pagination saat Tab berubah (sudah ada di kode Anda sebelumnya)
-useEffect(() => {
-  setCurrentPage(0);
-}, [activeTab]);
+    // 3. Reset Pagination saat Tab berubah (sudah ada di kode Anda sebelumnya)
+    useEffect(() => {
+      setCurrentPage(0);
+    }, [activeTab]);
   // Fallback theme jika category tidak terdaftar di sportsData
   const theme = sportTheme[category] || sportTheme.futsal;
 
@@ -182,7 +182,7 @@ useEffect(() => {
               onClick={() => navigate("/")}
               className="flex items-center gap-1 text-[10px] sm:text-xs font-medium bg-white/10 hover:bg-white/20 px-2 py-1 sm:px-3 sm:py-1.5 backdrop-blur rounded-md border border-white/20 transition-all shrink-0"
             >
-              Imbangi ← Portal Utama
+              Kembali ← Portal Utama
             </button>
             <h3 className="text-[11px] sm:text-sm md:text-base font-semibold tracking-wide text-white/90 drop-shadow-sm truncate">
               Indorama Founder's Day 2026

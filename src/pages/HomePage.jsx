@@ -449,9 +449,15 @@ const HomePage = () => {
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇
           </p>
 
-          {/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
+{/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
           <div className="mb-8 sm:mb-10 w-full max-w-2xl mx-auto px-4">
-            <div className="flex sm:justify-center items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none">
+            <div
+              className={`flex items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none ${
+                categoryGroups[activeGroup].length <= 4
+                  ? "justify-center"
+                  : "justify-start sm:justify-center"
+              }`}
+            >
               {categoryGroups[activeGroup].map((cat) => (
                 <button
                   key={cat.id}
@@ -466,7 +472,6 @@ const HomePage = () => {
               ))}
             </div>
           </div>
-
           <div className="w-[85vw] max-w-[260px] sm:max-w-xs mx-auto p-3 sm:p-4 rounded-xl bg-white border-2 border-[#ED1C24]/30 backdrop-blur-xl shadow-md relative">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[7px] sm:text-[8px] font-black uppercase tracking-widest bg-[#ED1C24] text-white px-2 sm:px-2.5 py-0.5 rounded shadow-sm whitespace-nowrap">
               Acara Mulai

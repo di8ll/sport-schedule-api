@@ -247,19 +247,27 @@ function TimelineSection() {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const [activeGroup, setActiveGroup] = useState("internal");
+
+  // 1. Inisialisasi state dengan mengambil dari localStorage
+  const [activeGroup, setActiveGroup] = useState(() => {
+    return localStorage.getItem("selectedGroup") || "internal";
+  });
+
+  // 2. Simpan ke localStorage setiap kali activeGroup berubah
+  useEffect(() => {
+    localStorage.setItem("selectedGroup", activeGroup);
+  }, [activeGroup]);
 
   // Tanggal target countdown mengikuti grup yang aktif
   const eventTarget =
     activeGroup === "internal" ? EVENT_DATE_INTERNAL : EVENT_DATE_EXTERNAL;
+  
   const [timeLeft, setTimeLeft] = useState(getTimeLeft(eventTarget));
-
-  // State untuk Klasemen
   const [isStandingsOpen, setIsStandingsOpen] = useState(false);
   const [standingsData, setStandingsData] = useState([]);
 
   useEffect(() => {
-    // Hitung ulang segera saat grup berganti (internal <-> external)
+    // Hitung ulang segera saat grup berganti
     setTimeLeft(getTimeLeft(eventTarget));
 
     const interval = setInterval(() => {
@@ -270,28 +278,19 @@ const HomePage = () => {
 
   const fetchStandings = async () => {
     try {
-      console.log("Mencoba mengambil data dari API...");
       const response = await fetch("https://api.indoramafoundersday.com/api/standings");
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      console.log("Data diterima:", data); // Cek konsol browser (F12)
-
-      // Pastikan data adalah array sebelum diset ke state
       if (Array.isArray(data)) {
         setStandingsData(data);
         setIsStandingsOpen(true);
-      } else {
-        console.error("Format data bukan array:", data);
       }
     } catch (error) {
       console.error("Gagal mengambil data klasemen:", error);
-      alert("Gagal mengambil data. Pastikan API berjalan dan CORS diaktifkan.");
+      alert("Gagal mengambil data klasemen.");
     }
   };
+
   const categoryGroups = {
     internal: [
       { id: "futsal", label: "Futsal", icon: "⚽" },

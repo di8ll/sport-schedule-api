@@ -296,13 +296,15 @@ const HomePage = () => {
       </button>
 
       {/* LOGO INDORAMA */}
-      <div className="fixed top-[-30px] sm:top-[-40px] left-0 sm:left-2 z-50 pointer-events-none">
-        <img
-          src="/logo_ifd.png"
-          alt="Indorama"
-          className="w-28 sm:w-40 drop-shadow-md pointer-events-auto block"
-        />
-      </div>
+
+      {/* LOGO INDORAMA */}
+      <div className="fixed top-2 left-2 z-[9999]">
+        <img
+          src="/logo_ifd.png"
+          alt="Indorama"
+          className="w-28 sm:w-40 drop-shadow-md block"
+        />
+      </div>
 
       {/* MODAL KLASEMEN */}
       {isStandingsOpen && (

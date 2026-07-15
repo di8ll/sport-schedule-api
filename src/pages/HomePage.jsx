@@ -253,7 +253,7 @@ const HomePage = () => {
   const fetchStandings = async () => {
     try {
       console.log("Mencoba mengambil data dari API...");
-      const response = await fetch("http://127.0.0.1:8000/api/standings");
+      const response = await fetch("https://api.indoramafoundersday.com/api/standings");
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

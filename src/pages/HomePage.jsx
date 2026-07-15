@@ -321,14 +321,22 @@ const HomePage = () => {
         Klasemen
       </button>
 
-      {/* LOGO INDORAMA */}
-      <div className="fixed top-2 left-2 z-[9999]">
-        <img
-          src="/logo_ifd.png"
-          alt="Indorama"
-          className="w-28 sm:w-40 drop-shadow-md block"
-        />
-      </div>
+{/* CONTAINER LOGO */}
+<div className="fixed top-2 left-2 z-[9999] flex items-center gap-4">
+  {/* LOGO INDORAMA */}
+  <img
+    src="/logo_ifd.png"
+    alt="Indorama"
+    className="w-28 sm:w-40 drop-shadow-md block"
+  />
+  
+  {/* LOGO POHON */}
+  <img
+    src="/pohon.png"
+    alt="Pohon"
+    className="w-16 sm:w-20 drop-shadow-md block"
+  />
+</div>
 
       {/* MODAL KLASEMEN */}
       {isStandingsOpen && (

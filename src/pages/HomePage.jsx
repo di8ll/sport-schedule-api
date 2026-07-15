@@ -451,7 +451,7 @@ const HomePage = () => {
       </div>
 
       {/* ================= TIMELINE SECTION ================= */}
-      <TimelineSection />
+{/*       <TimelineSection /> */}
 
       <footer className="w-full text-center py-5 border-t-2 border-slate-200 bg-white mt-0">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">

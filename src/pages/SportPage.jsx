@@ -11,7 +11,9 @@ const SportPage = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState("jadwal");
+const [activeTab, setActiveTab] = useState(() => {
+  return localStorage.getItem(`activeTab_${category}`) || "jadwal";
+});
   const [selectedMatchId, setSelectedMatchId] = useState(null);
 
   // State untuk melacak halaman item saat ini
@@ -107,10 +109,20 @@ const SportPage = () => {
   }, [category]);
 
   // Reset page pagination ketika user mengubah tab menu atas
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [activeTab]);
+// 1. Simpan Tab ke LocalStorage saat tab atau kategori berubah
+useEffect(() => {
+  localStorage.setItem(`activeTab_${category}`, activeTab);
+}, [activeTab, category]);
 
+// 2. Reset Pagination saat kategori berubah (Penting!)
+useEffect(() => {
+  setCurrentPage(0);
+}, [category]);
+
+// 3. Reset Pagination saat Tab berubah (sudah ada di kode Anda sebelumnya)
+useEffect(() => {
+  setCurrentPage(0);
+}, [activeTab]);
   // Fallback theme jika category tidak terdaftar di sportsData
   const theme = sportTheme[category] || sportTheme.futsal;
 

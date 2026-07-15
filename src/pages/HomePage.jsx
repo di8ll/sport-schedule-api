@@ -5,6 +5,24 @@ import { useNavigate } from "react-router-dom";
 const EVENT_DATE_INTERNAL = new Date("2026-07-17T00:00:00");
 const EVENT_DATE_EXTERNAL = new Date("2026-08-01T00:00:00");
 
+// Mapping kode klub (dari API) -> nama file logo di /public/logos
+// PENTING: sesuaikan key di sini dengan kode klub ASLI dari API kamu.
+// Tambah/ubah baris ini kalau ada kode yang belum cocok.
+const CLUB_LOGO_MAP = {
+  HO: "ho",
+  IPCI: "ipci",
+  IRT: "irt",
+  PYT: "polyester",
+  SPG: "spinning",
+  WVG: "weaving",
+};
+
+function getClubLogoSrc(clubCode) {
+  const key = (clubCode || "").toUpperCase();
+  const filename = CLUB_LOGO_MAP[key] || clubCode?.toLowerCase();
+  return `/logos/${filename}.png`;
+}
+
 function getTimeLeft(targetDate) {
   const diff = targetDate.getTime() - new Date().getTime();
   if (diff <= 0) return null;
@@ -349,7 +367,7 @@ const HomePage = () => {
                       <td className="p-2 font-bold text-[#00308F]">
                         <div className="flex items-center justify-center gap-1.5">
                           <img
-                            src={`/logos/${item.club.code.toLowerCase()}.png`}
+                            src={getClubLogoSrc(item.club.code)}
                             alt={item.club.code}
                             className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
                             onError={(e) => {

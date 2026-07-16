@@ -19,8 +19,14 @@ const CLUB_LOGO_MAP = {
 
 function getClubLogoSrc(clubCode) {
   const key = (clubCode || "").toUpperCase();
-  const filename = CLUB_LOGO_MAP[key] || clubCode?.toLowerCase();
-  return `/logos/${filename}.png`;
+const filename = CLUB_LOGO_MAP[key] || clubCode?.toLowerCase();
+
+console.log("Logo:", {
+  clubCode,
+  key,
+  filename,
+  url: `/logos/${filename}.png`
+});
 }
 
 function getTimeLeft(targetDate) {

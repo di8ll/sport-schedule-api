@@ -9,18 +9,30 @@ const EVENT_DATE_EXTERNAL = new Date("2026-08-01T00:00:00");
 // PENTING: sesuaikan key di sini dengan kode klub ASLI dari API kamu.
 // Tambah/ubah baris ini kalau ada kode yang belum cocok.
 const CLUB_LOGO_MAP = {
-  HO: "ho",
-  IPCI: "ipci",
-  IRT: "irt",
-  POLY: "polyester",
-  SPG: "spinning",
-  WVG: "weaving",
+  HO: "ho.png",
+  IPCI: "ipci.png",
+  IRT: "irt.png",
+
+  SPG: "spinning.png",
+  SPINNING: "spinning.png",
+
+  WVG: "weaving.png",
+  WEAVING: "weaving.png",
+
+  POLY: "polyester.png",
+  POLYESTER: "polyester.png",
 };
 
 function getClubLogoSrc(clubCode) {
-  const key = (clubCode || "").toUpperCase();
-  const filename = CLUB_LOGO_MAP[key] || clubCode?.toLowerCase();
-  return `/logos/${filename}.png`;
+  const code = String(clubCode || "")
+    .trim()
+    .toUpperCase();
+
+  const filename =
+    CLUB_LOGO_MAP[code] ||
+    `${code.toLowerCase().replace(/\s+/g, "")}.png`;
+
+  return `/logos/${filename}`;
 }
 
 function getTimeLeft(targetDate) {

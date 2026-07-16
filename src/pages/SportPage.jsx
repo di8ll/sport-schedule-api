@@ -58,6 +58,12 @@ const SportPage = () => {
     return str.toLowerCase().replace(/[_\-\s]+/g, "");
   };
 
+  // Fungsi bantu: potong format jam "15:00:00" jadi "15:00"
+  const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    return timeStr.slice(0, 5);
+  };
+
   const loadMatch = async () => {
     try {
       let baseCategory = category
@@ -322,7 +328,7 @@ const SportPage = () => {
 
                           <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600 min-w-0">
                             <span className={`text-[11px] sm:text-xs font-bold font-mono px-1.5 sm:px-2 py-0.5 rounded border shrink-0 ${badgeTimeStyle}`}>
-                              {match.time}
+                              {formatTime(match.time)}
                             </span>
                             <span className="text-[10px] sm:text-[11px] font-bold tracking-wide truncate">
                               📍 {match.venue || "Lapangan GOR PWS"}
@@ -517,7 +523,7 @@ const SportPage = () => {
                 <div className="w-[30%] flex flex-col items-center">
                   {selectedMatch.status === "UPCOMING" ? (
                     <span className="text-[9px] sm:text-[10px] font-black px-2 sm:px-2.5 py-1 bg-slate-200 text-slate-700 rounded-full uppercase tracking-wider whitespace-nowrap">
-                      {selectedMatch.time}
+                      {formatTime(selectedMatch.time)}
                     </span>
                   ) : (
                     <div className="flex items-center gap-1.5 sm:gap-2">
@@ -563,7 +569,7 @@ const SportPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400 font-bold uppercase tracking-wide">Jam</span>
-                  <span className="font-bold text-slate-700">{selectedMatch.time}</span>
+                  <span className="font-bold text-slate-700">{formatTime(selectedMatch.time)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400 font-bold uppercase tracking-wide">Venue</span>

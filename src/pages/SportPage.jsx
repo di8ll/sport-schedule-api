@@ -253,37 +253,87 @@ const SportPage = () => {
         </div>
 
         {/* ================= 2. MENU TABS ================= */}
-        <div className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm backdrop-blur-md bg-white/95">
-          <div className="max-w-7xl mx-auto flex justify-start sm:justify-center gap-3 sm:gap-8 px-3 sm:px-4 overflow-x-auto scrollbar-none">
-            {[
-              { id: "jadwal", label: "Akan Datang" },
-              { id: "live", label: "Berlangsung" },
-              { id: "hasil", label: "Hasil Pertandingan" },
-            ].map((tab) => {
-              const isSelected = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-3 sm:py-4 px-2 sm:px-3 text-[11px] sm:text-sm font-bold transition-all uppercase tracking-wider relative shrink-0 whitespace-nowrap border-b-2 -mb-[2px] flex items-center gap-1.5 ${isSelected
-                      ? "text-[#008080] border-[#008080]"
-                      : "text-slate-400 border-transparent hover:text-slate-600"
-                    }`}
-                >
-                  {tab.label}
-                  {tab.id === "live" && liveCount > 0 && (
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold leading-none ${isSelected ? "bg-red-500 text-white animate-pulse" : "bg-red-100 text-red-600"
-                        }`}
-                    >
-                      {liveCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+{/* ================= 2. MENU TABS ================= */}
+<div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+  <div className="max-w-7xl mx-auto">
+    <div className="grid grid-cols-3">
+
+      {[
+        {
+          id: "jadwal",
+          label: "Akan Datang",
+        },
+        {
+          id: "live",
+          label: "Berlangsung",
+        },
+        {
+          id: "hasil",
+          label: "Hasil Pertandingan",
+        },
+      ].map((tab) => {
+
+        const isSelected = activeTab === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`
+              relative
+              flex
+              flex-col
+              items-center
+              justify-center
+              py-3
+              sm:py-4
+              border-b-[3px]
+              transition-all
+              duration-200
+              ${
+                isSelected
+                  ? "border-[#008080] text-[#008080] bg-teal-50"
+                  : "border-transparent text-slate-500 hover:bg-slate-50"
+              }
+            `}
+          >
+            <span className="text-[11px] sm:text-sm font-bold uppercase text-center leading-tight px-1">
+              {tab.label}
+            </span>
+
+            {tab.id === "live" && liveCount > 0 && (
+              <span
+                className={`
+                  absolute
+                  top-2
+                  right-3
+                  min-w-[18px]
+                  h-[18px]
+                  rounded-full
+                  flex
+                  items-center
+                  justify-center
+                  text-[10px]
+                  font-black
+                  ${
+                    isSelected
+                      ? "bg-red-600 text-white animate-pulse"
+                      : "bg-red-100 text-red-600"
+                  }
+                `}
+              >
+                {liveCount}
+              </span>
+            )}
+
+          </button>
+        );
+
+      })}
+
+    </div>
+  </div>
+</div>
 
         {/* ================= 3. DYNAMIC CONTENT & PAGINATION ================= */}
         <div className="max-w-7xl mx-auto p-3 sm:p-6 md:p-8 mt-3 sm:mt-4">

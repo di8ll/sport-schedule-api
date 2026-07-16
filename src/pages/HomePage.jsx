@@ -337,6 +337,7 @@ const HomePage = () => {
         />
       </div>
 
+      {/* MODAL KLASEMEN */}
 {/* MODAL KLASEMEN */}
 {isStandingsOpen && (
   <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -370,84 +371,45 @@ const HomePage = () => {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {(() => {
-              // 1. Daftar semua kode klub Indorama secara lengkap
-              const allClubCodes = ["HO", "IPCI", "IRT", "PYT", "SPG", "WVG"];
-
-              // 2. Gabungkan data dari backend dengan daftar lengkap di atas
-              const completeStandings = allClubCodes.map((code) => {
-                // Cari apakah klub ini sudah ada datanya di respon API backend
-                const existingData = standingsData.find(
-                  (item) => item.club?.code?.toUpperCase() === code
-                );
-
-                if (existingData) {
-                  return existingData;
-                }
-
-                // Jika belum ada di backend, buat data tiruan (fallback) bernilai 0
-                return {
-                  id: `fallback-${code}`,
-                  club: { code: code },
-                  futsal: 0,
-                  catur: 0,
-                  badminton: 0,
-                  padel: 0,
-                  volley_putra: 0,
-                  volley_putri: 0,
-                  tenis_meja_putra: 0,
-                  tenis_meja_putri: 0,
-                  total_point: 0,
-                };
-              });
-
-              // 3. Urutkan berdasarkan total_point terbesar ke terkecil (agar ranking-nya benar)
-              const sortedStandings = completeStandings.sort((a, b) => {
-                const totalA = a.total_point ?? 0;
-                const totalB = b.total_point ?? 0;
-                return totalB - totalA;
-              });
-
-              // 4. Render baris tabel
-              return sortedStandings.map((item, index) => (
-                <tr key={item.id || index}>
-                  <td className="p-2 font-bold">{index + 1}</td>
-                  <td className="p-2 font-bold text-[#00308F]">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <img
-                        src={getClubLogoSrc(item.club?.code)}
-                        alt={item.club?.code}
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                      <span>{item.club?.code}</span>
-                    </div>
-                  </td>
-                  <td className="p-2">{item.futsal ?? 0}</td>
-                  <td className="p-2">{item.catur ?? 0}</td>
-                  <td className="p-2">{item.badminton ?? 0}</td>
-                  <td className="p-2">{item.padel ?? 0}</td>
-                  <td className="p-2">{item.volley_putra ?? 0}</td>
-                  <td className="p-2">{item.volley_putri ?? 0}</td>
-                  <td className="p-2">{item.tenis_meja_putra ?? 0}</td>
-                  <td className="p-2">{item.tenis_meja_putri ?? 0}</td>
-                  <td className="p-2 font-black text-[#ED1C24]">
-                    {item.total_point ?? (
-                      (item.futsal ?? 0) +
-                      (item.catur ?? 0) +
-                      (item.badminton ?? 0) +
-                      (item.padel ?? 0) +
-                      (item.volley_putra ?? 0) +
-                      (item.volley_putri ?? 0) +
-                      (item.tenis_meja_putra ?? 0) +
-                      (item.tenis_meja_putri ?? 0)
-                    )}
-                  </td>
-                </tr>
-              ));
-            })()}
+            {standingsData.map((item, index) => (
+              <tr key={item.id || index}>
+                <td className="p-2 font-bold">{index + 1}</td>
+                <td className="p-2 font-bold text-[#00308F]">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <img
+                      src={getClubLogoSrc(item.club?.code)}
+                      alt={item.club?.code}
+                      className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                    <span>{item.club?.code || item.club_code}</span>
+                  </div>
+                </td>
+                <td className="p-2">{item.futsal ?? 0}</td>
+                <td className="p-2">{item.catur ?? 0}</td>
+                <td className="p-2">{item.badminton ?? 0}</td>
+                <td className="p-2">{item.padel ?? 0}</td>
+                <td className="p-2">{item.volley_putra ?? item.volley_pa ?? 0}</td>
+                <td className="p-2">{item.volley_putri ?? item.volley_pi ?? 0}</td>
+                <td className="p-2">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
+                <td className="p-2">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+                <td className="p-2 font-black text-[#ED1C24]">
+                  {/* Gunakan total_point dari backend, atau hitung otomatis jika belum ada */}
+                  {item.total_point ?? (
+                    (item.futsal ?? 0) +
+                    (item.catur ?? 0) +
+                    (item.badminton ?? 0) +
+                    (item.padel ?? 0) +
+                    (item.volley_putra ?? 0) +
+                    (item.volley_putri ?? 0) +
+                    (item.tenis_meja_putra ?? 0) +
+                    (item.tenis_meja_putri ?? 0)
+                  )}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

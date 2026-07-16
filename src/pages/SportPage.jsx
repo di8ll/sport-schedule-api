@@ -19,6 +19,7 @@ const SportPage = () => {
   // Roster pemain untuk modal detail (Tim A & Tim B)
   const [teamAPlayers, setTeamAPlayers] = useState([]);
   const [teamBPlayers, setTeamBPlayers] = useState([]);
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState([]); // ⬅️ FIX: state ini sebelumnya belum dideklarasikan
   const [loadingPlayers, setLoadingPlayers] = useState(false);
 
   // State untuk melacak halaman item saat ini
@@ -147,37 +148,28 @@ const SportPage = () => {
     if (!selectedMatch) {
       setTeamAPlayers([]);
       setTeamBPlayers([]);
+      setSelectedPlayerIds([]); // ⬅️ FIX: reset juga saat modal ditutup
       return;
     }
 
     const loadPlayers = async () => {
       setLoadingPlayers(true);
       try {
-        const [resA, resB] = await Promise.all([
-          selectedMatch.teamAId
-            ? api.get(`/players`, {
-                params: {
-                  club_id: selectedMatch.teamAId,
-                  sport_type: selectedMatch.sportType,
-                },
-              })
-            : Promise.resolve({ data: [] }),
-          selectedMatch.teamBId
-            ? api.get(`/players`, {
-                params: {
-                  club_id: selectedMatch.teamBId,
-                  sport_type: selectedMatch.sportType,
-                },
-              })
-            : Promise.resolve({ data: [] }),
-        ]);
+        // Panggil endpoint baru yang sudah dibuat
+        const response = await api.get(`/matches/${selectedMatchId}/players`);
 
-        setTeamAPlayers(resA.data || []);
-        setTeamBPlayers(resB.data || []);
+        // Akses data sesuai struktur respons JSON:
+        // { "status": "success", "data": { "club_a": {...}, "club_b": {...}, "selected_ids": [...] } }
+        const result = response.data.data;
+
+        setTeamAPlayers(result.club_a?.players || []);
+        setTeamBPlayers(result.club_b?.players || []);
+        setSelectedPlayerIds(result.selected_ids || []);
       } catch (err) {
-        console.warn("Gagal mengambil data pemain:", err.message);
+        console.warn("Gagal mengambil data roster pemain:", err.message);
         setTeamAPlayers([]);
         setTeamBPlayers([]);
+        setSelectedPlayerIds([]);
       } finally {
         setLoadingPlayers(false);
       }
@@ -600,18 +592,21 @@ const SportPage = () => {
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
                         {selectedMatch.teamA}
                       </p>
-                      {teamAPlayers.length > 0 ? (
+                      {teamAPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
                         <ul className="space-y-1.5">
-                          {teamAPlayers.map((p) => (
-                            <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
-                              <span className="flex items-center gap-1.5 min-w-0">
-                                <span className="font-semibold text-slate-700 truncate">{p.name}</span>
-                              </span>
-                            </li>
-                          ))}
+                          {teamAPlayers
+                            .filter((p) => selectedPlayerIds.includes(p.id))
+                            .map((p) => (
+                              <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="flex items-center gap-1.5 min-w-0">
+                                  <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
+                                  <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                                </span>
+                              </li>
+                            ))}
                         </ul>
                       ) : (
-                        <p className="text-[10px] text-slate-400 italic">Belum ada data pemain.</p>
+                        <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
                       )}
                     </div>
 
@@ -620,19 +615,21 @@ const SportPage = () => {
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
                         {selectedMatch.teamB}
                       </p>
-                      {teamBPlayers.length > 0 ? (
+                      {teamBPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
                         <ul className="space-y-1.5">
-                          {teamBPlayers.map((p) => (
-                            <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
-                              <span className="flex items-center gap-1.5 min-w-0">
-                                <span className="font-semibold text-slate-700 truncate">{p.name}</span>
-                              </span>
-
-                            </li>
-                          ))}
+                          {teamBPlayers
+                            .filter((p) => selectedPlayerIds.includes(p.id))
+                            .map((p) => (
+                              <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="flex items-center gap-1.5 min-w-0">
+                                  <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
+                                  <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                                </span>
+                              </li>
+                            ))}
                         </ul>
                       ) : (
-                        <p className="text-[10px] text-slate-400 italic">Belum ada data pemain.</p>
+                        <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
                       )}
                     </div>
                   </div>

@@ -12,31 +12,17 @@ const CLUB_LOGO_MAP = {
   HO: "ho",
   IPCI: "ipci",
   IRT: "irt",
-
-  PYT: "polyester",
-  POLYESTER: "polyester",
-
+  POLY: "polyester",
   SPG: "spinning",
-  SPINNING: "spinning",
-
   WVG: "weaving",
-  WEAVING: "weaving",
 };
 
 function getClubLogoSrc(clubCode) {
-  if (!clubCode) return "/logos/default.png";
-
-  const key = clubCode
-    .toString()
-    .trim()
-    .toUpperCase();
-
-  const filename = CLUB_LOGO_MAP[key];
-
-  return filename
-    ? `/logos/${filename}.png`
-    : `/logos/${key.toLowerCase()}.png`;
+  const key = (clubCode || "").toUpperCase();
+  const filename = CLUB_LOGO_MAP[key] || clubCode?.toLowerCase();
+  return `/logos/${filename}.png`;
 }
+
 function getTimeLeft(targetDate) {
   const diff = targetDate.getTime() - new Date().getTime();
   if (diff <= 0) return null;

@@ -288,21 +288,90 @@ const HomePage = () => {
     return () => clearInterval(interval);
   }, [eventTarget]);
 
-  const fetchStandings = async () => {
-    try {
-      const response = await fetch("https://api.indoramafoundersday.com/api/standings");
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setStandingsData(data);
-        setIsStandingsOpen(true);
-      }
-    } catch (error) {
-      console.error("Gagal mengambil data klasemen:", error);
-      alert("Gagal mengambil data klasemen.");
-    }
-  };
+const fetchStandings = async () => {
+  try {
+    const response = await fetch(
+      "https://api.indoramafoundersday.com/api/standings"
+    );
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Semua klub yang harus selalu tampil
+    const ALL_CLUBS = [
+      { code: "HO" },
+      { code: "IPCI" },
+      { code: "IRT" },
+      { code: "POLY" },
+      { code: "SPG" },
+      { code: "WVG" },
+    ];
+
+    const mergedData = ALL_CLUBS.map((club) => {
+      const standing = Array.isArray(data)
+        ? data.find(
+            (item) =>
+              (item.club?.code || item.club_code || "")
+                .toUpperCase()
+                .trim() === club.code
+          )
+        : null;
+
+      return (
+        standing || {
+          club: {
+            code: club.code,
+          },
+          futsal: 0,
+          catur: 0,
+          badminton: 0,
+          padel: 0,
+          volley_putra: 0,
+          volley_putri: 0,
+          tenis_meja_putra: 0,
+          tenis_meja_putri: 0,
+          total_point: 0,
+        }
+      );
+    });
+
+    // Urutkan berdasarkan total poin terbesar
+    mergedData.sort((a, b) => {
+      const totalA =
+        a.total_point ??
+        (a.futsal ?? 0) +
+          (a.catur ?? 0) +
+          (a.badminton ?? 0) +
+          (a.padel ?? 0) +
+          (a.volley_putra ?? 0) +
+          (a.volley_putri ?? 0) +
+          (a.tenis_meja_putra ?? 0) +
+          (a.tenis_meja_putri ?? 0);
+
+      const totalB =
+        b.total_point ??
+        (b.futsal ?? 0) +
+          (b.catur ?? 0) +
+          (b.badminton ?? 0) +
+          (b.padel ?? 0) +
+          (b.volley_putra ?? 0) +
+          (b.volley_putri ?? 0) +
+          (b.tenis_meja_putra ?? 0) +
+          (b.tenis_meja_putri ?? 0);
+
+      return totalB - totalA;
+    });
+
+    setStandingsData(mergedData);
+    setIsStandingsOpen(true);
+  } catch (error) {
+    console.error(error);
+    alert("Gagal mengambil data klasemen.");
+  }
+};
   const categoryGroups = {
     internal: [
       { id: "futsal", label: "Futsal", icon: "⚽" },
@@ -385,44 +454,38 @@ const HomePage = () => {
 <tbody className="divide-y">
   {standingsData.map((item, index) => (
     <tr
-      key={item.id || index}
-      className="hover:bg-slate-50 transition-colors"
+      key={item.club?.code || item.club_code || index}
+      className="hover:bg-slate-50"
     >
-      {/* Rank */}
-      <td className="p-3">
-        <span className="font-black text-base">
-          {index + 1}
-        </span>
-      </td>
+      <td className="p-3 font-black">{index + 1}</td>
 
-      {/* Unit */}
       <td className="p-3">
         <div className="flex items-center gap-3">
           <img
-            src={getClubLogoSrc(item.club?.code)}
-            alt={item.club?.code}
-            className="w-8 h-8 object-contain flex-shrink-0"
+            src={getClubLogoSrc(item.club?.code || item.club_code)}
+            alt={item.club?.code || item.club_code}
+            className="w-8 h-8 object-contain"
             onError={(e) => {
               e.currentTarget.style.display = "none";
             }}
           />
 
-          <span className="font-bold text-[#00308F] text-sm">
+          <span className="font-bold text-[#00308F]">
             {item.club?.code || item.club_code}
           </span>
         </div>
       </td>
 
-      <td className="p-2">{item.futsal ?? 0}</td>
-      <td className="p-2">{item.catur ?? 0}</td>
-      <td className="p-2">{item.badminton ?? 0}</td>
-      <td className="p-2">{item.padel ?? 0}</td>
-      <td className="p-2">{item.volley_putra ?? item.volley_pa ?? 0}</td>
-      <td className="p-2">{item.volley_putri ?? item.volley_pi ?? 0}</td>
-      <td className="p-2">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
-      <td className="p-2">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+      <td>{item.futsal ?? 0}</td>
+      <td>{item.catur ?? 0}</td>
+      <td>{item.badminton ?? 0}</td>
+      <td>{item.padel ?? 0}</td>
+      <td>{item.volley_putra ?? item.volley_pa ?? 0}</td>
+      <td>{item.volley_putri ?? item.volley_pi ?? 0}</td>
+      <td>{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
+      <td>{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
 
-      <td className="p-2 font-black text-[#ED1C24] text-base">
+      <td className="font-black text-[#ED1C24]">
         {item.total_point ??
           (item.futsal ?? 0) +
             (item.catur ?? 0) +

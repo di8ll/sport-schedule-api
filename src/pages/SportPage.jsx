@@ -4,6 +4,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { sportTheme } from "../data/sportsData";
 import api from "../services/api";
 
+// ⬇️ FLAG: set ke `true` kapan pun mau mengaktifkan lagi modal detail saat card diklik.
+// Modal & semua logikanya TIDAK dihapus, cuma "dimatikan" lewat flag ini.
+const ENABLE_MATCH_DETAIL_MODAL = false;
+
 const SportPage = () => {
   const { category } = useParams();
   const navigate = useNavigate();
@@ -148,6 +152,14 @@ const SportPage = () => {
   const liveCount = matches.filter((m) => m.status === "LIVE").length;
 
   const selectedMatch = matches.find((m) => m.id === selectedMatchId);
+
+  // Handler klik card: modal cuma dibuka kalau flag ENABLE_MATCH_DETAIL_MODAL = true.
+  // Logika & JSX modal tetap ada, tidak dihapus — hanya "dibisukan" lewat flag ini.
+  const handleCardClick = (matchId) => {
+    if (ENABLE_MATCH_DETAIL_MODAL) {
+      setSelectedMatchId(matchId);
+    }
+  };
 
   // ================= FETCH ROSTER PEMAIN SAAT MODAL DIBUKA =================
   useEffect(() => {
@@ -317,8 +329,9 @@ const SportPage = () => {
                   return (
                     <div
                       key={match.id}
-                      onClick={() => setSelectedMatchId(match.id)}
-                      className={`bg-white rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer ${cardBorderStyle}`}
+                      onClick={() => handleCardClick(match.id)}
+                      className={`bg-white rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${ENABLE_MATCH_DETAIL_MODAL ? "cursor-pointer" : "cursor-default"
+                        } ${cardBorderStyle}`}
                     >
                       <div className={`flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 ${headerStyle}`}>
                         <div className="flex flex-col gap-0.5">
@@ -423,9 +436,12 @@ const SportPage = () => {
                           </div>
                         </div>
 
-                        <div className="w-full text-center mt-2 sm:mt-3 pt-2 border-t border-slate-100 text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          Klik untuk Detail Pertandingan 📋
-                        </div>
+                        {/* Hint "klik untuk detail" cuma tampil kalau modal aktif */}
+                        {ENABLE_MATCH_DETAIL_MODAL && (
+                          <div className="w-full text-center mt-2 sm:mt-3 pt-2 border-t border-slate-100 text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            Klik untuk Detail Pertandingan 📋
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -477,6 +493,8 @@ const SportPage = () => {
       </div>
 
       {/* ================= 4. DETAILED MODAL OVERLAY ================= */}
+      {/* Modal ini TIDAK dihapus, hanya tidak akan pernah dibuka selama
+          ENABLE_MATCH_DETAIL_MODAL = false, karena selectedMatchId tidak pernah di-set. */}
       {selectedMatch && (
         <div
           className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"

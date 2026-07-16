@@ -313,7 +313,7 @@ const HomePage = () => {
   return (
     <div className="w-full min-h-screen relative bg-slate-50 text-slate-800">
       {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) */}
-      <button
+      <button 
         onClick={fetchStandings}
         className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
       >
@@ -338,71 +338,84 @@ const HomePage = () => {
       </div>
 
       {/* MODAL KLASEMEN */}
-      {isStandingsOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
-            <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-              <h2 className="font-black text-[#00308F] uppercase">
-                Klasemen Sementara & Perolehan Poin
-              </h2>
-              <button
-                onClick={() => setIsStandingsOpen(false)}
-                className="text-xl font-bold text-slate-400"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="overflow-auto p-4">
-              <table className="w-full text-center text-[10px] sm:text-xs">
-                <thead>
-                  <tr className="text-slate-500 uppercase border-b">
-                    <th className="p-2">Rank</th>
-                    <th className="p-2">Unit</th>
-                    <th className="p-2">Futsal</th>
-                    <th className="p-2">Catur</th>
-                    <th className="p-2">Badminton</th>
-                    <th className="p-2">Padel</th>
-                    <th className="p-2">Volley (P/W)</th>
-                    <th className="p-2">Tenis Meja (P/W)</th>
-                    <th className="p-2 text-[#ED1C24]">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {standingsData.map((item, index) => (
-                    <tr key={item.id}>
-                      <td className="p-2 font-bold">{index + 1}</td>
-                      <td className="p-2 font-bold text-[#00308F]">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <img
-                            src={getClubLogoSrc(item.club.code)}
-                            alt={item.club.code}
-                            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                          <span>{item.club.code}</span>
-                        </div>
-                      </td>
-                      <td className="p-2">{item.futsal}</td>
-                      <td className="p-2">{item.catur}</td>
-                      <td className="p-2">{item.badminton}</td>
-                      <td className="p-2">{item.padel}</td>
-                      <td className="p-2">
-                        {item.volley_putra} / {item.volley_putri}
-                      </td>
-                      <td className="p-2">
-                        {item.tenis_meja_putra} / {item.tenis_meja_putri}
-                      </td>
-                      <td className="p-2 font-black text-[#ED1C24]">{item.total_point}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+{/* MODAL KLASEMEN */}
+{isStandingsOpen && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+      <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+        <h2 className="font-black text-[#00308F] uppercase">
+          Klasemen Sementara & Perolehan Poin
+        </h2>
+        <button
+          onClick={() => setIsStandingsOpen(false)}
+          className="text-xl font-bold text-slate-400 hover:text-slate-600"
+        >
+          ✕
+        </button>
+      </div>
+      <div className="overflow-auto p-4">
+        <table className="w-full text-center text-[10px] sm:text-xs">
+          <thead>
+            <tr className="text-slate-500 uppercase border-b">
+              <th className="p-2">Rank</th>
+              <th className="p-2">Unit</th>
+              <th className="p-2">Futsal</th>
+              <th className="p-2">Catur</th>
+              <th className="p-2">Badminton</th>
+              <th className="p-2">Padel</th>
+              <th className="p-2">Volley PA</th>
+              <th className="p-2">Volley PI</th>
+              <th className="p-2">Meja PA</th>
+              <th className="p-2">Meja PI</th>
+              <th className="p-2 text-[#ED1C24]">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {standingsData.map((item, index) => (
+              <tr key={item.id || index}>
+                <td className="p-2 font-bold">{index + 1}</td>
+                <td className="p-2 font-bold text-[#00308F]">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <img
+                      src={getClubLogoSrc(item.club?.code)}
+                      alt={item.club?.code}
+                      className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                    <span>{item.club?.code || item.club_code}</span>
+                  </div>
+                </td>
+                <td className="p-2">{item.futsal ?? 0}</td>
+                <td className="p-2">{item.catur ?? 0}</td>
+                <td className="p-2">{item.badminton ?? 0}</td>
+                <td className="p-2">{item.padel ?? 0}</td>
+                <td className="p-2">{item.volley_putra ?? item.volley_pa ?? 0}</td>
+                <td className="p-2">{item.volley_putri ?? item.volley_pi ?? 0}</td>
+                <td className="p-2">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
+                <td className="p-2">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+                <td className="p-2 font-black text-[#ED1C24]">
+                  {/* Gunakan total_point dari backend, atau hitung otomatis jika belum ada */}
+                  {item.total_point ?? (
+                    (item.futsal ?? 0) +
+                    (item.catur ?? 0) +
+                    (item.badminton ?? 0) +
+                    (item.padel ?? 0) +
+                    (item.volley_putra ?? 0) +
+                    (item.volley_putri ?? 0) +
+                    (item.tenis_meja_putra ?? 0) +
+                    (item.tenis_meja_putri ?? 0)
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ================= HERO SECTION ================= */}
       <div

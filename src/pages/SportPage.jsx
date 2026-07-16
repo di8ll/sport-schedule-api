@@ -584,7 +584,7 @@ const SportPage = () => {
               {/* ================= ROSTER PEMAIN KEDUA TIM ================= */}
               <div>
                 <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
-                  👥 Daftar Pemain
+                  👥 Daftar Starting Line Up
                 </h4>
 
                 {loadingPlayers ? (

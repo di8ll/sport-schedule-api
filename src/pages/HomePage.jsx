@@ -382,47 +382,79 @@ const HomePage = () => {
               <th className="p-2 text-[#ED1C24]">Total</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
-            {standingsData.map((item, index) => (
-              <tr key={item.id || index}>
-                <td className="p-2 font-bold">{index + 1}</td>
-                <td className="p-2 font-bold text-[#00308F]">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <img
-                      src={getClubLogoSrc(item.club?.code)}
-                      alt={item.club?.code}
-                      className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                    <span>{item.club?.code || item.club_code}</span>
-                  </div>
-                </td>
-                <td className="p-2">{item.futsal ?? 0}</td>
-                <td className="p-2">{item.catur ?? 0}</td>
-                <td className="p-2">{item.badminton ?? 0}</td>
-                <td className="p-2">{item.padel ?? 0}</td>
-                <td className="p-2">{item.volley_putra ?? item.volley_pa ?? 0}</td>
-                <td className="p-2">{item.volley_putri ?? item.volley_pi ?? 0}</td>
-                <td className="p-2">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
-                <td className="p-2">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
-                <td className="p-2 font-black text-[#ED1C24]">
-                  {/* Gunakan total_point dari backend, atau hitung otomatis jika belum ada */}
-                  {item.total_point ?? (
-                    (item.futsal ?? 0) +
-                    (item.catur ?? 0) +
-                    (item.badminton ?? 0) +
-                    (item.padel ?? 0) +
-                    (item.volley_putra ?? 0) +
-                    (item.volley_putri ?? 0) +
-                    (item.tenis_meja_putra ?? 0) +
-                    (item.tenis_meja_putri ?? 0)
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
+<tbody className="divide-y">
+  {standingsData.map((item, index) => {
+    const medals = ["🥇", "🥈", "🥉"];
+
+    return (
+      <tr
+        key={item.id || index}
+        className={
+          index === 0
+            ? "bg-yellow-50 hover:bg-yellow-100"
+            : index === 1
+            ? "bg-gray-50 hover:bg-gray-100"
+            : index === 2
+            ? "bg-orange-50 hover:bg-orange-100"
+            : "hover:bg-slate-50"
+        }
+      >
+        {/* Rank */}
+        <td className="p-3">
+          <div className="flex items-center justify-center gap-2">
+            {index < 3 && (
+              <span className="text-xl">
+                {medals[index]}
+              </span>
+            )}
+            <span className="font-black text-base">
+              {index + 1}
+            </span>
+          </div>
+        </td>
+
+        {/* Unit */}
+        <td className="p-3">
+          <div className="flex items-center gap-3">
+            <img
+              src={getClubLogoSrc(item.club?.code)}
+              alt={item.club?.code}
+              className="w-8 h-8 object-contain flex-shrink-0"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+
+            <span className="font-bold text-[#00308F] text-sm">
+              {item.club?.code || item.club_code}
+            </span>
+          </div>
+        </td>
+
+        <td>{item.futsal ?? 0}</td>
+        <td>{item.catur ?? 0}</td>
+        <td>{item.badminton ?? 0}</td>
+        <td>{item.padel ?? 0}</td>
+        <td>{item.volley_putra ?? item.volley_pa ?? 0}</td>
+        <td>{item.volley_putri ?? item.volley_pi ?? 0}</td>
+        <td>{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
+        <td>{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+
+        <td className="font-black text-[#ED1C24] text-base">
+          {item.total_point ??
+            (item.futsal ?? 0) +
+              (item.catur ?? 0) +
+              (item.badminton ?? 0) +
+              (item.padel ?? 0) +
+              (item.volley_putra ?? 0) +
+              (item.volley_putri ?? 0) +
+              (item.tenis_meja_putra ?? 0) +
+              (item.tenis_meja_putri ?? 0)}
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
         </table>
       </div>
     </div>

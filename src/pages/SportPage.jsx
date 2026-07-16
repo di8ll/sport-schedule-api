@@ -11,10 +11,15 @@ const SportPage = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
 
-const [activeTab, setActiveTab] = useState(() => {
-  return localStorage.getItem(`activeTab_${category}`) || "jadwal";
-});
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem(`activeTab_${category}`) || "jadwal";
+  });
   const [selectedMatchId, setSelectedMatchId] = useState(null);
+
+  // Roster pemain untuk modal detail (Tim A & Tim B)
+  const [teamAPlayers, setTeamAPlayers] = useState([]);
+  const [teamBPlayers, setTeamBPlayers] = useState([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(false);
 
   // State untuk melacak halaman item saat ini
   const [currentPage, setCurrentPage] = useState(0);
@@ -25,7 +30,6 @@ const [activeTab, setActiveTab] = useState(() => {
 
     const code = teamCode.toUpperCase().trim();
 
-    // Pemetaan singkatan / kode tim ke nama file gambar asli Anda
     switch (code) {
       case "HO":
         return "ho.png";
@@ -33,28 +37,24 @@ const [activeTab, setActiveTab] = useState(() => {
         return "ipci.png";
       case "IRT":
         return "irt.png";
-      case "SPG": // Jika dari DB teksnya SPG, arahkan ke file spinning.png
+      case "SPG":
       case "SPINNING":
         return "spinning.png";
-      case "WVG": // Jika dari DB teksnya WVG, arahkan ke file weaving.png
+      case "WVG":
       case "WEAVING":
         return "weaving.png";
       case "POLY":
       case "POLYESTER":
         return "polyester.png";
       default:
-        // Fallback jika nama tim sudah pas dengan nama file lowercased
         return `${code.toLowerCase().replace(/\s+/g, "")}.png`;
     }
   };
 
   // Fungsi bantu: bersihkan string jadi format polos (lowercase, tanpa spasi/underscore/hyphen)
-  // supaya "Tenis Meja", "tenis_meja", "tenis-meja", "TENIS MEJA" semua dianggap SAMA
   const normalize = (str) => {
     if (!str) return "";
-    return str
-      .toLowerCase()
-      .replace(/[_\-\s]+/g, ""); // hapus semua underscore, hyphen, dan spasi
+    return str.toLowerCase().replace(/[_\-\s]+/g, "");
   };
 
   const loadMatch = async () => {
@@ -65,7 +65,6 @@ const [activeTab, setActiveTab] = useState(() => {
 
       const normalizedCategory = normalize(baseCategory);
 
-      // Selalu ambil semua data, jangan filter sport_type di backend
       const res = await api.get(`/matches`, { params: {} });
 
       if (res.data && res.data.length > 0) {
@@ -77,6 +76,9 @@ const [activeTab, setActiveTab] = useState(() => {
           sportType: m.sport_type,
           teamA: m.club_a?.code ?? m.club_a?.name ?? "Unknown Team",
           teamB: m.club_b?.code ?? m.club_b?.name ?? "Unknown Team",
+          // simpan juga club_id asli, dipakai buat fetch roster pemain
+          teamAId: m.club_a?.id ?? m.club_a_id ?? null,
+          teamBId: m.club_b?.id ?? m.club_b_id ?? null,
           scoreA: m.score_a ?? 0,
           scoreB: m.score_b ?? 0,
           venue: m.venue,
@@ -108,25 +110,20 @@ const [activeTab, setActiveTab] = useState(() => {
     return () => clearInterval(interval);
   }, [category]);
 
-  // Reset page pagination ketika user mengubah tab menu atas
-// 1. Simpan Tab ke LocalStorage saat tab atau kategori berubah
-    useEffect(() => {
-      localStorage.setItem(`activeTab_${category}`, activeTab);
-    }, [activeTab, category]);
+  useEffect(() => {
+    localStorage.setItem(`activeTab_${category}`, activeTab);
+  }, [activeTab, category]);
 
-    // 2. Reset Pagination saat kategori berubah (Penting!)
-    useEffect(() => {
-      setCurrentPage(0);
-    }, [category]);
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [category]);
 
-    // 3. Reset Pagination saat Tab berubah (sudah ada di kode Anda sebelumnya)
-    useEffect(() => {
-      setCurrentPage(0);
-    }, [activeTab]);
-  // Fallback theme jika category tidak terdaftar di sportsData
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [activeTab]);
+
   const theme = sportTheme[category] || sportTheme.futsal;
 
-  // 1. Filter data match berdasarkan kategori Tab aktif
   const filteredMatches = matches.filter((m) => {
     const status = m.status?.toUpperCase().trim();
     if (activeTab === "hasil") return status === "FINISHED";
@@ -134,20 +131,60 @@ const [activeTab, setActiveTab] = useState(() => {
     if (activeTab === "jadwal") return status === "UPCOMING";
     return true;
   });
-  // 2. Tentukan batasan item per halaman (Maksimal 3 item)
+
   const ITEMS_PER_PAGE = 3;
   const totalPages = Math.ceil(filteredMatches.length / ITEMS_PER_PAGE);
 
-  // 3. Ambil data match yang masuk ke halaman aktif saat ini (Slice array)
   const startIndex = currentPage * ITEMS_PER_PAGE;
   const currentMatchesToShow = filteredMatches.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  // 4. Ambil tanggal dari pertandingan pertama di halaman ini untuk dinonjolkan di Header
-  const activeDate = currentMatchesToShow.length > 0 ? currentMatchesToShow[0].date : "";
 
   const liveCount = matches.filter((m) => m.status === "LIVE").length;
 
   const selectedMatch = matches.find((m) => m.id === selectedMatchId);
+
+  // ================= FETCH ROSTER PEMAIN SAAT MODAL DIBUKA =================
+  useEffect(() => {
+    if (!selectedMatch) {
+      setTeamAPlayers([]);
+      setTeamBPlayers([]);
+      return;
+    }
+
+    const loadPlayers = async () => {
+      setLoadingPlayers(true);
+      try {
+        const [resA, resB] = await Promise.all([
+          selectedMatch.teamAId
+            ? api.get(`/players`, {
+                params: {
+                  club_id: selectedMatch.teamAId,
+                  sport_type: selectedMatch.sportType,
+                },
+              })
+            : Promise.resolve({ data: [] }),
+          selectedMatch.teamBId
+            ? api.get(`/players`, {
+                params: {
+                  club_id: selectedMatch.teamBId,
+                  sport_type: selectedMatch.sportType,
+                },
+              })
+            : Promise.resolve({ data: [] }),
+        ]);
+
+        setTeamAPlayers(resA.data || []);
+        setTeamBPlayers(resB.data || []);
+      } catch (err) {
+        console.warn("Gagal mengambil data pemain:", err.message);
+        setTeamAPlayers([]);
+        setTeamBPlayers([]);
+      } finally {
+        setLoadingPlayers(false);
+      }
+    };
+
+    loadPlayers();
+  }, [selectedMatchId]);
 
   if (loading) {
     return (
@@ -242,12 +279,11 @@ const [activeTab, setActiveTab] = useState(() => {
         <div className="max-w-7xl mx-auto p-3 sm:p-6 md:p-8 mt-3 sm:mt-4">
           {filteredMatches.length > 0 ? (
             <div className="space-y-4 sm:space-y-6">
-              {/* Header Tanggal Aktif */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-2 sm:gap-2.5">
                   <span className="text-lg sm:text-xl">📅</span>
                   <h3 className="text-sm sm:text-base md:text-lg font-black text-slate-800 tracking-wide uppercase">
-                    Jadwal Pertandingan : 
+                    Jadwal Pertandingan :
                   </h3>
                 </div>
                 <span className="text-[11px] sm:text-xs font-bold px-3 py-1 bg-teal-50 text-teal-700 border border-teal-200 rounded-full w-fit">
@@ -255,7 +291,6 @@ const [activeTab, setActiveTab] = useState(() => {
                 </span>
               </div>
 
-              {/* Grid Responsive (Maksimal 3 Card per Halaman) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {currentMatchesToShow.map((match) => {
                   const isLive = match.status === "LIVE";
@@ -284,27 +319,24 @@ const [activeTab, setActiveTab] = useState(() => {
                   return (
                     <div
                       key={match.id}
-                      // onClick={() => setSelectedMatchId(match.id)}
+                      onClick={() => setSelectedMatchId(match.id)}
                       className={`bg-white rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer ${cardBorderStyle}`}
                     >
-                      {/* Top Header Card */}
-                    <div className={`flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 ${headerStyle}`}>
-                      <div className="flex flex-col gap-0.5"> {/* Ubah menjadi column agar tanggal dan jam sejajar */}
-                        
-                        {/* TAMBAHKAN BARIS INI UNTUK TANGGAL */}
-                        <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                          📅 {match.date}
-                        </span>
+                      <div className={`flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 ${headerStyle}`}>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            📅 {match.date}
+                          </span>
 
-                        <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600 min-w-0">
-                          <span className={`text-[11px] sm:text-xs font-bold font-mono px-1.5 sm:px-2 py-0.5 rounded border shrink-0 ${badgeTimeStyle}`}>
-                            {match.time}
-                          </span>
-                          <span className="text-[10px] sm:text-[11px] font-bold tracking-wide truncate">
-                            📍 {match.venue || "Lapangan GOR PWS"}
-                          </span>
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600 min-w-0">
+                            <span className={`text-[11px] sm:text-xs font-bold font-mono px-1.5 sm:px-2 py-0.5 rounded border shrink-0 ${badgeTimeStyle}`}>
+                              {match.time}
+                            </span>
+                            <span className="text-[10px] sm:text-[11px] font-bold tracking-wide truncate">
+                              📍 {match.venue || "Lapangan GOR PWS"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
                         <div className="shrink-0">
                           {isLive ? (
                             <span className="inline-flex items-center gap-1 bg-red-600 text-white font-extrabold text-[9px] sm:text-[10px] tracking-widest px-2 sm:px-2.5 py-0.5 rounded-full uppercase border border-red-700 shadow-sm whitespace-nowrap">
@@ -323,15 +355,12 @@ const [activeTab, setActiveTab] = useState(() => {
                         </div>
                       </div>
 
-                      {/* Main Match Info */}
                       <div className="p-3 sm:p-4 md:p-5 flex flex-col items-center justify-center bg-gradient-to-b from-white to-slate-50/50">
-                        {/* Container Flex Row untuk menyejajarkan Babak & Kategori Gender */}
                         <div className="flex items-center justify-center gap-1.5 mb-3 sm:mb-4 flex-wrap">
                           <span className="text-[9px] sm:text-[10px] font-extrabold text-[#008080] tracking-widest uppercase bg-teal-50/60 px-2.5 sm:px-3 py-1 rounded-full border-2 border-teal-200/80 text-center">
                             {match.stage}
                           </span>
 
-                          {/* Badge Klasifikasi Putra / Putri Berdasarkan String sportType dari DB */}
                           {match.sportType && (match.sportType.toLowerCase().includes("putra") || match.sportType.toLowerCase().includes("putri")) && (
                             <span className={`text-[9px] sm:text-[10px] font-extrabold tracking-widest uppercase px-2.5 sm:px-3 py-1 rounded-full border-2 text-center ${match.sportType.toLowerCase().includes("putri")
                                 ? "bg-pink-50 border-pink-200 text-pink-700"
@@ -343,7 +372,6 @@ const [activeTab, setActiveTab] = useState(() => {
                         </div>
 
                         <div className="w-full flex items-center justify-between gap-1 sm:gap-1.5">
-                          {/* Team A */}
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                               <img
@@ -358,7 +386,6 @@ const [activeTab, setActiveTab] = useState(() => {
                             </span>
                           </div>
 
-                          {/* VS / Score */}
                           <div className="w-[24%] flex flex-col items-center justify-center">
                             {isUpcoming ? (
                               <div className="font-black italic text-[10px] sm:text-xs tracking-wider text-slate-500 bg-slate-100 border-2 border-slate-300 px-1.5 sm:px-2.5 py-1 rounded-xl shadow-sm">
@@ -383,7 +410,6 @@ const [activeTab, setActiveTab] = useState(() => {
                             )}
                           </div>
 
-                          {/* Team B */}
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                               <img
@@ -399,16 +425,15 @@ const [activeTab, setActiveTab] = useState(() => {
                           </div>
                         </div>
 
-                        {/* <div className="w-full text-center mt-2 sm:mt-3 pt-2 border-t border-slate-100 text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="w-full text-center mt-2 sm:mt-3 pt-2 border-t border-slate-100 text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                           Klik untuk Detail Pertandingan 📋
-                        </div> */}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* ================= BAR PAGINATION ================= */}
               {totalPages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-slate-200">
                   <p className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -436,7 +461,6 @@ const [activeTab, setActiveTab] = useState(() => {
               )}
             </div>
           ) : (
-            /* ================= STATE KOSONG ================= */
             <div className="text-center py-12 sm:py-20 px-4 bg-white border-2 border-dashed border-slate-300 rounded-2xl shadow-sm max-w-md mx-auto">
               <span className="text-4xl sm:text-5xl block mb-3 animate-[bounce_2s_infinite]">
                 {activeTab === "live" ? "🎥" : activeTab === "jadwal" ? "⏳" : "🏁"}
@@ -456,8 +480,14 @@ const [activeTab, setActiveTab] = useState(() => {
 
       {/* ================= 4. DETAILED MODAL OVERLAY ================= */}
       {selectedMatch && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]">
+        <div
+          className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
+          onClick={() => setSelectedMatchId(null)}
+        >
+          <div
+            className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header Modal */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-900 text-white flex items-center justify-between shrink-0 gap-2">
               <div className="flex flex-col min-w-0">
@@ -527,7 +557,6 @@ const [activeTab, setActiveTab] = useState(() => {
 
               {/* Info tambahan sederhana */}
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2 text-xs">
-                {/* Menampilkan Detail Kategori Gender di dalam Modal Box */}
                 {selectedMatch.sportType && (
                   <div className="flex justify-between">
                     <span className="text-slate-400 font-bold uppercase tracking-wide">Kategori</span>
@@ -552,6 +581,62 @@ const [activeTab, setActiveTab] = useState(() => {
                   <span className="text-slate-400 font-bold uppercase tracking-wide">Babak</span>
                   <span className="font-bold text-slate-700">{selectedMatch.stage}</span>
                 </div>
+              </div>
+
+              {/* ================= ROSTER PEMAIN KEDUA TIM ================= */}
+              <div>
+                <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
+                  👥 Daftar Pemain
+                </h4>
+
+                {loadingPlayers ? (
+                  <div className="text-center py-6 text-xs text-slate-400 font-medium">
+                    Memuat data pemain...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Tim A */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-3">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
+                        {selectedMatch.teamA}
+                      </p>
+                      {teamAPlayers.length > 0 ? (
+                        <ul className="space-y-1.5">
+                          {teamAPlayers.map((p) => (
+                            <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
+                              <span className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 italic">Belum ada data pemain.</p>
+                      )}
+                    </div>
+
+                    {/* Tim B */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-3">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
+                        {selectedMatch.teamB}
+                      </p>
+                      {teamBPlayers.length > 0 ? (
+                        <ul className="space-y-1.5">
+                          {teamBPlayers.map((p) => (
+                            <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
+                              <span className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                              </span>
+
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 italic">Belum ada data pemain.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

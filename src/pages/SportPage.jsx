@@ -4,9 +4,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { sportTheme } from "../data/sportsData";
 import api from "../services/api";
 
-// ⬇️ FLAG: set ke `true` kapan pun mau mengaktifkan lagi modal detail saat card diklik.
-// Modal & semua logikanya TIDAK dihapus, cuma "dimatikan" lewat flag ini.
-const ENABLE_MATCH_DETAIL_MODAL = false;
+// ⬇️ Daftar cabang olahraga yang boleh membuka modal detail (dengan live streaming + skor).
+// Cabang lain di luar daftar ini TETAP tidak bisa diklik, sesuai perilaku sebelumnya.
+// Kalau nanti mau tambah cabang lain yang bisa dibuka detailnya, tinggal tambahkan slug-nya di sini.
+const DETAIL_MODAL_ENABLED_CATEGORIES = ["padel"];
+
+// ⬇️ Link live streaming YouTube untuk cabang Padel.
+// Kalau mau ganti video/live per pertandingan, sesuaikan logikanya di sini (misal simpan per-match di DB).
+const PADEL_LIVE_STREAM_EMBED_URL = "https://www.youtube.com/embed/G4ejnqXNIR4?si=s9UpQUpZJaK1Dl1J";
 
 const SportPage = () => {
   const { category } = useParams();
@@ -28,6 +33,10 @@ const SportPage = () => {
 
   // State untuk melacak halaman item saat ini
   const [currentPage, setCurrentPage] = useState(0);
+
+  // Apakah cabang olahraga saat ini boleh membuka modal detail (dan live streaming)?
+  const isDetailModalEnabled = DETAIL_MODAL_ENABLED_CATEGORIES.includes(category);
+  const isPadel = category === "padel";
 
   // Fungsi Helper untuk memetakan KODE CLUB dari database ke NAMA FILE LOGO di public/logos/
   const getLogoFileName = (teamCode) => {
@@ -153,10 +162,10 @@ const SportPage = () => {
 
   const selectedMatch = matches.find((m) => m.id === selectedMatchId);
 
-  // Handler klik card: modal cuma dibuka kalau flag ENABLE_MATCH_DETAIL_MODAL = true.
-  // Logika & JSX modal tetap ada, tidak dihapus — hanya "dibisukan" lewat flag ini.
+  // Handler klik card: modal cuma dibuka kalau cabang olahraganya termasuk
+  // dalam DETAIL_MODAL_ENABLED_CATEGORIES (saat ini hanya "padel").
   const handleCardClick = (matchId) => {
-    if (ENABLE_MATCH_DETAIL_MODAL) {
+    if (isDetailModalEnabled) {
       setSelectedMatchId(matchId);
     }
   };
@@ -253,87 +262,86 @@ const SportPage = () => {
         </div>
 
         {/* ================= 2. MENU TABS ================= */}
-{/* ================= 2. MENU TABS ================= */}
-<div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
-  <div className="max-w-7xl mx-auto">
-    <div className="grid grid-cols-3">
+        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-3">
 
-      {[
-        {
-          id: "jadwal",
-          label: "Akan Datang",
-        },
-        {
-          id: "live",
-          label: "Berlangsung",
-        },
-        {
-          id: "hasil",
-          label: "Hasil Pertandingan",
-        },
-      ].map((tab) => {
+              {[
+                {
+                  id: "jadwal",
+                  label: "Akan Datang",
+                },
+                {
+                  id: "live",
+                  label: "Berlangsung",
+                },
+                {
+                  id: "hasil",
+                  label: "Hasil Pertandingan",
+                },
+              ].map((tab) => {
 
-        const isSelected = activeTab === tab.id;
+                const isSelected = activeTab === tab.id;
 
-        return (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`
-              relative
-              flex
-              flex-col
-              items-center
-              justify-center
-              py-3
-              sm:py-4
-              border-b-[3px]
-              transition-all
-              duration-200
-              ${
-                isSelected
-                  ? "border-[#008080] text-[#008080] bg-teal-50"
-                  : "border-transparent text-slate-500 hover:bg-slate-50"
-              }
-            `}
-          >
-            <span className="text-[11px] sm:text-sm font-bold uppercase text-center leading-tight px-1">
-              {tab.label}
-            </span>
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      relative
+                      flex
+                      flex-col
+                      items-center
+                      justify-center
+                      py-3
+                      sm:py-4
+                      border-b-[3px]
+                      transition-all
+                      duration-200
+                      ${
+                        isSelected
+                          ? "border-[#008080] text-[#008080] bg-teal-50"
+                          : "border-transparent text-slate-500 hover:bg-slate-50"
+                      }
+                    `}
+                  >
+                    <span className="text-[11px] sm:text-sm font-bold uppercase text-center leading-tight px-1">
+                      {tab.label}
+                    </span>
 
-            {tab.id === "live" && liveCount > 0 && (
-              <span
-                className={`
-                  absolute
-                  top-2
-                  right-3
-                  min-w-[18px]
-                  h-[18px]
-                  rounded-full
-                  flex
-                  items-center
-                  justify-center
-                  text-[10px]
-                  font-black
-                  ${
-                    isSelected
-                      ? "bg-red-600 text-white animate-pulse"
-                      : "bg-red-100 text-red-600"
-                  }
-                `}
-              >
-                {liveCount}
-              </span>
-            )}
+                    {tab.id === "live" && liveCount > 0 && (
+                      <span
+                        className={`
+                          absolute
+                          top-2
+                          right-3
+                          min-w-[18px]
+                          h-[18px]
+                          rounded-full
+                          flex
+                          items-center
+                          justify-center
+                          text-[10px]
+                          font-black
+                          ${
+                            isSelected
+                              ? "bg-red-600 text-white animate-pulse"
+                              : "bg-red-100 text-red-600"
+                          }
+                        `}
+                      >
+                        {liveCount}
+                      </span>
+                    )}
 
-          </button>
-        );
+                  </button>
+                );
 
-      })}
+              })}
 
-    </div>
-  </div>
-</div>
+            </div>
+          </div>
+        </div>
 
         {/* ================= 3. DYNAMIC CONTENT & PAGINATION ================= */}
         <div className="max-w-7xl mx-auto p-3 sm:p-6 md:p-8 mt-3 sm:mt-4">
@@ -380,7 +388,7 @@ const SportPage = () => {
                     <div
                       key={match.id}
                       onClick={() => handleCardClick(match.id)}
-                      className={`bg-white rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${ENABLE_MATCH_DETAIL_MODAL ? "cursor-pointer" : "cursor-default"
+                      className={`bg-white rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${isDetailModalEnabled ? "cursor-pointer" : "cursor-default"
                         } ${cardBorderStyle}`}
                     >
                       <div className={`flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 ${headerStyle}`}>
@@ -486,10 +494,10 @@ const SportPage = () => {
                           </div>
                         </div>
 
-                        {/* Hint "klik untuk detail" cuma tampil kalau modal aktif */}
-                        {ENABLE_MATCH_DETAIL_MODAL && (
+                        {/* Hint "klik untuk detail" cuma tampil untuk cabang yang modalnya aktif */}
+                        {isDetailModalEnabled && (
                           <div className="w-full text-center mt-2 sm:mt-3 pt-2 border-t border-slate-100 text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            Klik untuk Detail Pertandingan 📋
+                            {isPadel && isLive ? "Klik untuk Nonton Live + Detail 🔴" : "Klik untuk Detail Pertandingan 📋"}
                           </div>
                         )}
                       </div>
@@ -543,8 +551,9 @@ const SportPage = () => {
       </div>
 
       {/* ================= 4. DETAILED MODAL OVERLAY ================= */}
-      {/* Modal ini TIDAK dihapus, hanya tidak akan pernah dibuka selama
-          ENABLE_MATCH_DETAIL_MODAL = false, karena selectedMatchId tidak pernah di-set. */}
+      {/* Modal ini hanya bisa terbuka untuk cabang yang ada di
+          DETAIL_MODAL_ENABLED_CATEGORIES (saat ini hanya "padel"), karena
+          selectedMatchId cuma di-set lewat handleCardClick yang sudah digating. */}
       {selectedMatch && (
         <div
           className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
@@ -574,6 +583,38 @@ const SportPage = () => {
 
             {/* Konten Modal */}
             <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-5 p-4 sm:p-5">
+
+              {/* ================= LIVE STREAMING YOUTUBE (khusus Padel) ================= */}
+              {isPadel && (
+                <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                  {selectedMatch.status === "LIVE" ? (
+                    <div className="aspect-video w-full bg-black">
+                      <iframe
+                        className="w-full h-full"
+                        src={PADEL_LIVE_STREAM_EMBED_URL}
+                        title="Live Streaming Padel"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video w-full bg-slate-100 flex flex-col items-center justify-center text-center px-4">
+                      <span className="text-2xl mb-1">📺</span>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                        {selectedMatch.status === "FINISHED"
+                          ? "Live streaming sudah berakhir"
+                          : "Live streaming belum dimulai"}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Video akan tampil otomatis saat status pertandingan LIVE.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Papan Skor Utama */}
               <div className="flex items-center justify-between bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-100 gap-1">
                 <div className="w-[35%] flex flex-col items-center text-center">

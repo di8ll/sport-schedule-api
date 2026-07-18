@@ -11,12 +11,7 @@ const DETAIL_MODAL_ENABLED_CATEGORIES = ["padel"];
 
 // ⬇️ Link live streaming YouTube untuk cabang Padel.
 // Kalau mau ganti video/live per pertandingan, sesuaikan logikanya di sini (misal simpan per-match di DB).
-// Catatan: video ini "Allow embedding"-nya dimatikan oleh pemiliknya, jadi TIDAK BISA ditampilkan
-// lewat <iframe> (akan selalu muncul "Video unavailable"). Solusinya: tampilkan thumbnail + tombol
-// "Tonton di YouTube" yang membuka video di tab baru, bukan embed langsung.
-const PADEL_LIVE_STREAM_VIDEO_ID = "G4ejnqXNIR4";
-const PADEL_LIVE_STREAM_WATCH_URL = `https://www.youtube.com/watch?v=${PADEL_LIVE_STREAM_VIDEO_ID}`;
-const PADEL_LIVE_STREAM_THUMBNAIL_URL = `https://img.youtube.com/vi/${PADEL_LIVE_STREAM_VIDEO_ID}/hqdefault.jpg`;
+const PADEL_LIVE_STREAM_EMBED_URL = "https://www.youtube.com/embed/G4ejnqXNIR4?si=s9UpQUpZJaK1Dl1J";
 
 const SportPage = () => {
   const { category } = useParams();
@@ -590,36 +585,20 @@ const SportPage = () => {
             <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-5 p-4 sm:p-5">
 
               {/* ================= LIVE STREAMING YOUTUBE (khusus Padel) ================= */}
-              {/* Video ini embed-nya dimatikan oleh pemilik channel, jadi kita tidak pakai <iframe>
-                  (akan selalu error "Video unavailable"). Sebagai gantinya tampilkan thumbnail
-                  + tombol yang membuka video langsung di YouTube (tab baru). */}
               {isPadel && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                   {selectedMatch.status === "LIVE" ? (
-                    <a
-                      href={PADEL_LIVE_STREAM_WATCH_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="relative aspect-video w-full bg-black flex items-center justify-center group"
-                    >
-                      <img
-                        src={PADEL_LIVE_STREAM_THUMBNAIL_URL}
-                        alt="Live Streaming Padel"
-                        className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity"
+                    <div className="aspect-video w-full bg-black">
+                      <iframe
+                        className="w-full h-full"
+                        src={PADEL_LIVE_STREAM_EMBED_URL}
+                        title="Live Streaming Padel"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
                       />
-                      <div className="absolute top-2 left-2 inline-flex items-center gap-1 bg-red-600 text-white font-extrabold text-[9px] tracking-widest px-2 py-0.5 rounded-full uppercase border border-red-700 shadow-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                        LIVE
-                      </div>
-                      <div className="relative z-10 flex flex-col items-center gap-1.5">
-                        <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                          <span className="text-red-600 text-xl ml-0.5">▶</span>
-                        </div>
-                        <span className="text-white text-[11px] font-bold uppercase tracking-wide drop-shadow-sm bg-black/40 px-3 py-1 rounded-full">
-                          Tonton di YouTube ↗
-                        </span>
-                      </div>
-                    </a>
+                    </div>
                   ) : (
                     <div className="aspect-video w-full bg-slate-100 flex flex-col items-center justify-center text-center px-4">
                       <span className="text-2xl mb-1">📺</span>
@@ -629,7 +608,7 @@ const SportPage = () => {
                           : "Live streaming belum dimulai"}
                       </p>
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        Tombol nonton akan tampil otomatis saat status pertandingan LIVE.
+                        Video akan tampil otomatis saat status pertandingan LIVE.
                       </p>
                     </div>
                   )}

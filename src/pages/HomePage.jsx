@@ -476,10 +476,10 @@ const fetchStandings = async () => {
                   }}
                 />
 
-                <span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
-                  {medal && <span className="text-sm sm:text-base">{medal}</span>}
-                  {item.club?.code || item.club_code}
-                </span>
+<span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
+  {item.club?.code || item.club_code}
+  {medal && <span className="text-sm sm:text-base">{medal}</span>}
+</span>
               </div>
             </td>
 

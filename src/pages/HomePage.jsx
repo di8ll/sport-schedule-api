@@ -421,8 +421,8 @@ const fetchStandings = async () => {
       {/* MODAL KLASEMEN */}
 {/* MODAL KLASEMEN */}
 {isStandingsOpen && (
-  <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-    <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+<div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
+    <div className="bg-white rounded-xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
       <div className="p-4 border-b flex justify-between items-center bg-slate-50">
         <h2 className="font-black text-[#00308F] uppercase">
           Klasemen Sementara & Perolehan Poin
@@ -434,85 +434,81 @@ const fetchStandings = async () => {
           ✕
         </button>
       </div>
-      <div className="overflow-auto p-4">
-        <table className="w-full text-center text-[10px] sm:text-xs">
-          <thead>
-            <tr className="text-slate-500 uppercase border-b">
-              <th className="p-2">Rank</th>
-              <th className="p-2">Unit</th>
-              <th className="p-2">Futsal</th>
-              <th className="p-2">Catur</th>
-              <th className="p-2">Badminton</th>
-              <th className="p-2">Padel</th>
-              <th className="p-2">Volley PA</th>
-              <th className="p-2">Volley PI</th>
-              <th className="p-2">Meja PA</th>
-              <th className="p-2">Meja PI</th>
-              <th className="p-2 text-[#ED1C24]">Total</th>
-            </tr>
-          </thead>
-<tbody className="divide-y">
-  {standingsData.map((item, index) => {
-    const medal =
-      index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : null;
-
-    return (
-      <tr
-        key={item.club?.code || item.club_code || index}
-        className={`hover:bg-slate-50 ${
-          medal ? "bg-amber-50/40" : ""
-        }`}
-      >
-        <td className="p-3 font-black">
-          <span className="inline-flex items-center gap-1">
-            {medal && <span className="text-base sm:text-lg">{medal}</span>}
-            {index + 1}
-          </span>
-        </td>
-
-        <td className="p-3">
-          <div className="flex items-center gap-3">
-            <img
-              src={getClubLogoSrc(item.club?.code || item.club_code)}
-              alt={item.club?.code || item.club_code}
-              className="w-8 h-8 object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
-
-            <span className="font-bold text-[#00308F]">
-              {item.club?.code || item.club_code}
-            </span>
-          </div>
-        </td>
-
-        <td>{item.futsal ?? 0}</td>
-        <td>{item.catur ?? 0}</td>
-        <td>{item.badminton ?? 0}</td>
-        <td>{item.padel ?? 0}</td>
-        <td>{item.volley_putra ?? item.volley_pa ?? 0}</td>
-        <td>{item.volley_putri ?? item.volley_pi ?? 0}</td>
-        <td>{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
-        <td>{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
-
-        <td className="font-black text-[#ED1C24]">
-          {item.total_point ??
-            (item.futsal ?? 0) +
-              (item.catur ?? 0) +
-              (item.badminton ?? 0) +
-              (item.padel ?? 0) +
-              (item.volley_putra ?? 0) +
-              (item.volley_putri ?? 0) +
-              (item.tenis_meja_putra ?? 0) +
-              (item.tenis_meja_putri ?? 0)}
-        </td>
+<div className="overflow-x-auto p-2 sm:p-4 -mx-1 sm:mx-0">
+  <table className="w-full min-w-[640px] text-center text-[10px] sm:text-xs border-collapse">
+    <thead>
+      <tr className="text-slate-500 uppercase border-b">
+        <th className="p-2 sm:p-3 whitespace-nowrap">Rank</th>
+        <th className="p-2 sm:p-3 text-left whitespace-nowrap">Unit</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Futsal</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Catur</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Badminton</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Padel</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Volley PA</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Volley PI</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Meja PA</th>
+        <th className="p-2 sm:p-3 whitespace-nowrap">Meja PI</th>
+        <th className="p-2 sm:p-3 text-[#ED1C24] whitespace-nowrap">Total</th>
       </tr>
-    );
-  })}
-</tbody>
-        </table>
-      </div>
+    </thead>
+    <tbody className="divide-y">
+      {standingsData.map((item, index) => {
+        const medal =
+          index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : null;
+
+        return (
+          <tr
+            key={item.club?.code || item.club_code || index}
+            className={`hover:bg-slate-50 ${medal ? "bg-amber-50/50" : ""}`}
+          >
+            <td className="p-2 sm:p-3 font-black text-slate-700">
+              {index + 1}
+            </td>
+
+            <td className="p-2 sm:p-3">
+              <div className="flex items-center gap-1.5 sm:gap-3">
+                <img
+                  src={getClubLogoSrc(item.club?.code || item.club_code)}
+                  alt={item.club?.code || item.club_code}
+                  className="w-6 h-6 sm:w-8 sm:h-8 object-contain shrink-0"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+
+                <span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
+                  {medal && <span className="text-sm sm:text-base">{medal}</span>}
+                  {item.club?.code || item.club_code}
+                </span>
+              </div>
+            </td>
+
+            <td className="p-2 sm:p-3">{item.futsal ?? 0}</td>
+            <td className="p-2 sm:p-3">{item.catur ?? 0}</td>
+            <td className="p-2 sm:p-3">{item.badminton ?? 0}</td>
+            <td className="p-2 sm:p-3">{item.padel ?? 0}</td>
+            <td className="p-2 sm:p-3">{item.volley_putra ?? item.volley_pa ?? 0}</td>
+            <td className="p-2 sm:p-3">{item.volley_putri ?? item.volley_pi ?? 0}</td>
+            <td className="p-2 sm:p-3">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
+            <td className="p-2 sm:p-3">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+
+            <td className="p-2 sm:p-3 font-black text-[#ED1C24]">
+              {item.total_point ??
+                (item.futsal ?? 0) +
+                  (item.catur ?? 0) +
+                  (item.badminton ?? 0) +
+                  (item.padel ?? 0) +
+                  (item.volley_putra ?? 0) +
+                  (item.volley_putri ?? 0) +
+                  (item.tenis_meja_putra ?? 0) +
+                  (item.tenis_meja_putri ?? 0)}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
     </div>
   </div>
 )}

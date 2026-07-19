@@ -452,52 +452,64 @@ const fetchStandings = async () => {
             </tr>
           </thead>
 <tbody className="divide-y">
-  {standingsData.map((item, index) => (
-    <tr
-      key={item.club?.code || item.club_code || index}
-      className="hover:bg-slate-50"
-    >
-      <td className="p-3 font-black">{index + 1}</td>
+  {standingsData.map((item, index) => {
+    const medal =
+      index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : null;
 
-      <td className="p-3">
-        <div className="flex items-center gap-3">
-          <img
-            src={getClubLogoSrc(item.club?.code || item.club_code)}
-            alt={item.club?.code || item.club_code}
-            className="w-8 h-8 object-contain"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-
-          <span className="font-bold text-[#00308F]">
-            {item.club?.code || item.club_code}
+    return (
+      <tr
+        key={item.club?.code || item.club_code || index}
+        className={`hover:bg-slate-50 ${
+          medal ? "bg-amber-50/40" : ""
+        }`}
+      >
+        <td className="p-3 font-black">
+          <span className="inline-flex items-center gap-1">
+            {medal && <span className="text-base sm:text-lg">{medal}</span>}
+            {index + 1}
           </span>
-        </div>
-      </td>
+        </td>
 
-      <td>{item.futsal ?? 0}</td>
-      <td>{item.catur ?? 0}</td>
-      <td>{item.badminton ?? 0}</td>
-      <td>{item.padel ?? 0}</td>
-      <td>{item.volley_putra ?? item.volley_pa ?? 0}</td>
-      <td>{item.volley_putri ?? item.volley_pi ?? 0}</td>
-      <td>{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
-      <td>{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+        <td className="p-3">
+          <div className="flex items-center gap-3">
+            <img
+              src={getClubLogoSrc(item.club?.code || item.club_code)}
+              alt={item.club?.code || item.club_code}
+              className="w-8 h-8 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
 
-      <td className="font-black text-[#ED1C24]">
-        {item.total_point ??
-          (item.futsal ?? 0) +
-            (item.catur ?? 0) +
-            (item.badminton ?? 0) +
-            (item.padel ?? 0) +
-            (item.volley_putra ?? 0) +
-            (item.volley_putri ?? 0) +
-            (item.tenis_meja_putra ?? 0) +
-            (item.tenis_meja_putri ?? 0)}
-      </td>
-    </tr>
-  ))}
+            <span className="font-bold text-[#00308F]">
+              {item.club?.code || item.club_code}
+            </span>
+          </div>
+        </td>
+
+        <td>{item.futsal ?? 0}</td>
+        <td>{item.catur ?? 0}</td>
+        <td>{item.badminton ?? 0}</td>
+        <td>{item.padel ?? 0}</td>
+        <td>{item.volley_putra ?? item.volley_pa ?? 0}</td>
+        <td>{item.volley_putri ?? item.volley_pi ?? 0}</td>
+        <td>{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
+        <td>{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+
+        <td className="font-black text-[#ED1C24]">
+          {item.total_point ??
+            (item.futsal ?? 0) +
+              (item.catur ?? 0) +
+              (item.badminton ?? 0) +
+              (item.padel ?? 0) +
+              (item.volley_putra ?? 0) +
+              (item.volley_putri ?? 0) +
+              (item.tenis_meja_putra ?? 0) +
+              (item.tenis_meja_putri ?? 0)}
+        </td>
+      </tr>
+    );
+  })}
 </tbody>
         </table>
       </div>

@@ -421,9 +421,11 @@ const fetchStandings = async () => {
 <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
     <div className="bg-white rounded-xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
       <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+        <center>
         <h2 className="font-black text-[#00308F] uppercase">
           Klasemen Sementara & Perolehan Poin
         </h2>
+        </center>
         <button
           onClick={() => setIsStandingsOpen(false)}
           className="text-xl font-bold text-slate-400 hover:text-slate-600"

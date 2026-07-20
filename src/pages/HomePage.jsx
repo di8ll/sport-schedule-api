@@ -417,9 +417,6 @@ const fetchStandings = async () => {
           className="w-16 sm:w-20 drop-shadow-md block"
         />
       </div>
-
-      {/* MODAL KLASEMEN */}
-{/* MODAL KLASEMEN */}
 {isStandingsOpen && (
 <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
     <div className="bg-white rounded-xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
@@ -453,8 +450,8 @@ const fetchStandings = async () => {
     </thead>
     <tbody className="divide-y">
       {standingsData.map((item, index) => {
-        const medal =
-          index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : null;
+        // Hanya rank 1 (index === 0) yang mendapat medali
+        const medal = index === 0 ? "🥇" : null;
 
         return (
           <tr
@@ -476,10 +473,10 @@ const fetchStandings = async () => {
                   }}
                 />
 
-<span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
-  {item.club?.code || item.club_code}
-  {medal && <span className="text-sm sm:text-base">{medal}</span>}
-</span>
+              <span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
+                {item.club?.code || item.club_code}
+                {medal && <span className="text-sm sm:text-base">{medal}</span>}
+              </span>
               </div>
             </td>
 

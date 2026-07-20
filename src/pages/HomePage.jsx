@@ -129,8 +129,8 @@ function Dot({ status, className = "" }) {
     status === "done"
       ? "bg-[#00308F]"
       : status === "active"
-      ? "bg-[#ED1C24]"
-      : "bg-white border-2 border-[#DCDAD5]";
+        ? "bg-[#ED1C24]"
+        : "bg-white border-2 border-[#DCDAD5]";
   return (
     <span
       className={`relative flex items-center justify-center w-4 h-4 rounded-full shadow-md ${color} ${className}`}
@@ -147,27 +147,24 @@ function TimelineCard({ event, status, align }) {
   const isActive = status === "active";
   return (
     <div
-      className={`group relative w-full max-w-sm p-4 sm:p-5 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-        isActive
+      className={`group relative w-full max-w-sm p-4 sm:p-5 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isActive
           ? "bg-white border-[#ED1C24]/40 shadow-md shadow-[#ED1C24]/10"
           : isDone
-          ? "bg-white/70 border-slate-200"
-          : "bg-slate-50 border-slate-200"
-      } ${align === "right" ? "sm:text-right" : ""}`}
+            ? "bg-white/70 border-slate-200"
+            : "bg-slate-50 border-slate-200"
+        } ${align === "right" ? "sm:text-right" : ""}`}
     >
       {isActive && (
         <span
-          className={`absolute -top-2.5 ${
-            align === "right" ? "right-4" : "left-4"
-          } text-[8px] font-black uppercase tracking-widest bg-[#ED1C24] text-white px-2 py-0.5 rounded-full shadow`}
+          className={`absolute -top-2.5 ${align === "right" ? "right-4" : "left-4"
+            } text-[8px] font-black uppercase tracking-widest bg-[#ED1C24] text-white px-2 py-0.5 rounded-full shadow`}
         >
           Sedang Berlangsung
         </span>
       )}
       <div
-        className={`flex items-center gap-2 mb-1 ${
-          align === "right" ? "sm:flex-row-reverse" : ""
-        }`}
+        className={`flex items-center gap-2 mb-1 ${align === "right" ? "sm:flex-row-reverse" : ""
+          }`}
       >
         <span className="text-xl leading-none">{event.icon}</span>
         <span className="text-[10px] font-black uppercase tracking-widest text-[#8B8D8E]">
@@ -175,9 +172,8 @@ function TimelineCard({ event, status, align }) {
         </span>
       </div>
       <h3
-        className={`text-sm sm:text-base font-black uppercase italic tracking-tight mb-1 ${
-          isDone ? "text-[#00308F]/60" : "text-[#00308F]"
-        }`}
+        className={`text-sm sm:text-base font-black uppercase italic tracking-tight mb-1 ${isDone ? "text-[#00308F]/60" : "text-[#00308F]"
+          }`}
       >
         {event.title}
       </h3>
@@ -196,9 +192,8 @@ function TimelineItem({ event, index }) {
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      }`}
+      className={`transition-all duration-700 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        }`}
       style={{ transitionDelay: `${index * 90}ms` }}
     >
       {/* Mobile layout: single rail on the left */}
@@ -273,7 +268,7 @@ const HomePage = () => {
   // Tanggal target countdown mengikuti grup yang aktif
   const eventTarget =
     activeGroup === "internal" ? EVENT_DATE_INTERNAL : EVENT_DATE_EXTERNAL;
-  
+
   const [timeLeft, setTimeLeft] = useState(getTimeLeft(eventTarget));
   const [isStandingsOpen, setIsStandingsOpen] = useState(false);
   const [standingsData, setStandingsData] = useState([]);
@@ -288,61 +283,61 @@ const HomePage = () => {
     return () => clearInterval(interval);
   }, [eventTarget]);
 
-const fetchStandings = async () => {
-  try {
-    const response = await fetch(
-      "https://api.indoramafoundersday.com/api/standings"
-    );
+  const fetchStandings = async () => {
+    try {
+      const response = await fetch(
+        "https://api.indoramafoundersday.com/api/standings"
+      );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    const data = await response.json();
+      const data = await response.json();
 
-    // Semua klub yang harus selalu tampil
-    const ALL_CLUBS = [
-      { code: "HO" },
-      { code: "IPCI" },
-      { code: "IRT" },
-      { code: "POLY" },
-      { code: "SPG" },
-      { code: "WVG" },
-    ];
+      // Semua klub yang harus selalu tampil
+      const ALL_CLUBS = [
+        { code: "HO" },
+        { code: "IPCI" },
+        { code: "IRT" },
+        { code: "POLY" },
+        { code: "SPG" },
+        { code: "WVG" },
+      ];
 
-    const mergedData = ALL_CLUBS.map((club) => {
-      const standing = Array.isArray(data)
-        ? data.find(
+      const mergedData = ALL_CLUBS.map((club) => {
+        const standing = Array.isArray(data)
+          ? data.find(
             (item) =>
               (item.club?.code || item.club_code || "")
                 .toUpperCase()
                 .trim() === club.code
           )
-        : null;
+          : null;
 
-      return (
-        standing || {
-          club: {
-            code: club.code,
-          },
-          futsal: 0,
-          catur: 0,
-          badminton: 0,
-          padel: 0,
-          volley_putra: 0,
-          volley_putri: 0,
-          tenis_meja_putra: 0,
-          tenis_meja_putri: 0,
-          total_point: 0,
-        }
-      );
-    });
+        return (
+          standing || {
+            club: {
+              code: club.code,
+            },
+            futsal: 0,
+            catur: 0,
+            badminton: 0,
+            padel: 0,
+            volley_putra: 0,
+            volley_putri: 0,
+            tenis_meja_putra: 0,
+            tenis_meja_putri: 0,
+            total_point: 0,
+          }
+        );
+      });
 
-    // Urutkan berdasarkan total poin terbesar
-    mergedData.sort((a, b) => {
-      const totalA =
-        a.total_point ??
-        (a.futsal ?? 0) +
+      // Urutkan berdasarkan total poin terbesar
+      mergedData.sort((a, b) => {
+        const totalA =
+          a.total_point ??
+          (a.futsal ?? 0) +
           (a.catur ?? 0) +
           (a.badminton ?? 0) +
           (a.padel ?? 0) +
@@ -351,9 +346,9 @@ const fetchStandings = async () => {
           (a.tenis_meja_putra ?? 0) +
           (a.tenis_meja_putri ?? 0);
 
-      const totalB =
-        b.total_point ??
-        (b.futsal ?? 0) +
+        const totalB =
+          b.total_point ??
+          (b.futsal ?? 0) +
           (b.catur ?? 0) +
           (b.badminton ?? 0) +
           (b.padel ?? 0) +
@@ -362,16 +357,16 @@ const fetchStandings = async () => {
           (b.tenis_meja_putra ?? 0) +
           (b.tenis_meja_putri ?? 0);
 
-      return totalB - totalA;
-    });
+        return totalB - totalA;
+      });
 
-    setStandingsData(mergedData);
-    setIsStandingsOpen(true);
-  } catch (error) {
-    console.error(error);
-    alert("Gagal mengambil data klasemen.");
-  }
-};
+      setStandingsData(mergedData);
+      setIsStandingsOpen(true);
+    } catch (error) {
+      console.error(error);
+      alert("Gagal mengambil data klasemen.");
+    }
+  };
   const categoryGroups = {
     internal: [
       { id: "futsal", label: "Futsal", icon: "⚽" },
@@ -394,7 +389,7 @@ const fetchStandings = async () => {
   return (
     <div className="w-full min-h-screen relative bg-slate-50 text-slate-800">
       {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) */}
-      <button 
+      <button
         onClick={fetchStandings}
         className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
       >
@@ -409,7 +404,7 @@ const fetchStandings = async () => {
           alt="Indorama"
           className="w-28 sm:w-40 drop-shadow-md block"
         />
-        
+
         {/* LOGO POHON */}
         <img
           src="/pohon.png"
@@ -417,100 +412,98 @@ const fetchStandings = async () => {
           className="w-16 sm:w-20 drop-shadow-md block"
         />
       </div>
-{isStandingsOpen && (
-<div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
-    <div className="bg-white rounded-xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
-      <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-        <center>
-        <h2 className="font-black text-[#00308F] uppercase">
-          Klasemen Sementara & Perolehan Poin
-        </h2>
-        </center>
-        <button
-          onClick={() => setIsStandingsOpen(false)}
-          className="text-xl font-bold text-slate-400 hover:text-slate-600"
-        >
-          ✕
-        </button>
-      </div>
-<div className="overflow-x-auto p-2 sm:p-4 -mx-1 sm:mx-0">
-  <table className="w-full min-w-[640px] text-center text-[10px] sm:text-xs border-collapse">
-    <thead>
-      <tr className="text-slate-500 uppercase border-b">
-        <th className="p-2 sm:p-3 whitespace-nowrap">Rank</th>
-        <th className="p-2 sm:p-3 text-left whitespace-nowrap">Unit</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Futsal</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Catur</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Badminton</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Padel</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Volley PA</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Volley PI</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Meja PA</th>
-        <th className="p-2 sm:p-3 whitespace-nowrap">Meja PI</th>
-        <th className="p-2 sm:p-3 text-[#ED1C24] whitespace-nowrap">Total</th>
-      </tr>
-    </thead>
-    <tbody className="divide-y">
-      {standingsData.map((item, index) => {
-        // Hanya rank 1 (index === 0) yang mendapat medali
-        const medal = index === 0 ? "🥇" : null;
+      {isStandingsOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-4 border-b flex justify-between items-center bg-slate-50">
+              <h2 className="text-center font-black text-[#00308F] uppercase">
+                Klasemen Sementara & Perolehan Poin
+              </h2>
+              <button
+                onClick={() => setIsStandingsOpen(false)}
+                className="text-xl font-bold text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="overflow-x-auto p-2 sm:p-4 -mx-1 sm:mx-0">
+              <table className="w-full min-w-[640px] text-center text-[10px] sm:text-xs border-collapse">
+                <thead>
+                  <tr className="text-slate-500 uppercase border-b">
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Rank</th>
+                    <th className="p-2 sm:p-3 text-left whitespace-nowrap">Unit</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Futsal</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Catur</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Badminton</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Padel</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Volley PA</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Volley PI</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Meja PA</th>
+                    <th className="p-2 sm:p-3 whitespace-nowrap">Meja PI</th>
+                    <th className="p-2 sm:p-3 text-[#ED1C24] whitespace-nowrap">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {standingsData.map((item, index) => {
+                    // Hanya rank 1 (index === 0) yang mendapat medali
+                    const medal = index === 0 ? "🥇" : null;
 
-        return (
-          <tr
-            key={item.club?.code || item.club_code || index}
-            className={`hover:bg-slate-50 ${medal ? "bg-amber-50/50" : ""}`}
-          >
-            <td className="p-2 sm:p-3 font-black text-slate-700">
-              {index + 1}
-            </td>
+                    return (
+                      <tr
+                        key={item.club?.code || item.club_code || index}
+                        className={`hover:bg-slate-50 ${medal ? "bg-amber-50/50" : ""}`}
+                      >
+                        <td className="p-2 sm:p-3 font-black text-slate-700">
+                          {index + 1}
+                        </td>
 
-            <td className="p-2 sm:p-3">
-              <div className="flex items-center gap-1.5 sm:gap-3">
-                <img
-                  src={getClubLogoSrc(item.club?.code || item.club_code)}
-                  alt={item.club?.code || item.club_code}
-                  className="w-6 h-6 sm:w-8 sm:h-8 object-contain shrink-0"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
+                        <td className="p-2 sm:p-3">
+                          <div className="flex items-center gap-1.5 sm:gap-3">
+                            <img
+                              src={getClubLogoSrc(item.club?.code || item.club_code)}
+                              alt={item.club?.code || item.club_code}
+                              className="w-6 h-6 sm:w-8 sm:h-8 object-contain shrink-0"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
 
-              <span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
-                {item.club?.code || item.club_code}
-                {medal && <span className="text-sm sm:text-base">{medal}</span>}
-              </span>
-              </div>
-            </td>
+                            <span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
+                              {item.club?.code || item.club_code}
+                              {medal && <span className="text-sm sm:text-base">{medal}</span>}
+                            </span>
+                          </div>
+                        </td>
 
-            <td className="p-2 sm:p-3">{item.futsal ?? 0}</td>
-            <td className="p-2 sm:p-3">{item.catur ?? 0}</td>
-            <td className="p-2 sm:p-3">{item.badminton ?? 0}</td>
-            <td className="p-2 sm:p-3">{item.padel ?? 0}</td>
-            <td className="p-2 sm:p-3">{item.volley_putra ?? item.volley_pa ?? 0}</td>
-            <td className="p-2 sm:p-3">{item.volley_putri ?? item.volley_pi ?? 0}</td>
-            <td className="p-2 sm:p-3">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
-            <td className="p-2 sm:p-3">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.futsal ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.catur ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.badminton ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.padel ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.volley_putra ?? item.volley_pa ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.volley_putri ?? item.volley_pi ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
+                        <td className="p-2 sm:p-3">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
 
-            <td className="p-2 sm:p-3 font-black text-[#ED1C24]">
-              {item.total_point ??
-                (item.futsal ?? 0) +
-                  (item.catur ?? 0) +
-                  (item.badminton ?? 0) +
-                  (item.padel ?? 0) +
-                  (item.volley_putra ?? 0) +
-                  (item.volley_putri ?? 0) +
-                  (item.tenis_meja_putra ?? 0) +
-                  (item.tenis_meja_putri ?? 0)}
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-</div>
-    </div>
-  </div>
-)}
+                        <td className="p-2 sm:p-3 font-black text-[#ED1C24]">
+                          {item.total_point ??
+                            (item.futsal ?? 0) +
+                            (item.catur ?? 0) +
+                            (item.badminton ?? 0) +
+                            (item.padel ?? 0) +
+                            (item.volley_putra ?? 0) +
+                            (item.volley_putri ?? 0) +
+                            (item.tenis_meja_putra ?? 0) +
+                            (item.tenis_meja_putri ?? 0)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================= HERO SECTION ================= */}
       <div
@@ -541,11 +534,10 @@ const fetchStandings = async () => {
                 <button
                   key={group}
                   onClick={() => handleGroupChange(group)}
-                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    activeGroup === group
+                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeGroup === group
                       ? "bg-[#00308F] text-white shadow-md"
                       : "text-[#8B8D8E] hover:text-[#00308F]"
-                  }`}
+                    }`}
                 >
                   {group === "internal" ? "Internal" : "External"}
                 </button>
@@ -557,14 +549,13 @@ const fetchStandings = async () => {
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇
           </p>
 
-{/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
+          {/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
           <div className="mb-8 sm:mb-10 w-full max-w-2xl mx-auto px-4">
             <div
-              className={`flex items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none ${
-                categoryGroups[activeGroup].length <= 4
+              className={`flex items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none ${categoryGroups[activeGroup].length <= 4
                   ? "justify-center"
                   : "justify-start sm:justify-center"
-              }`}
+                }`}
             >
               {categoryGroups[activeGroup].map((cat) => (
                 <button

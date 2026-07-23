@@ -313,12 +313,12 @@ const HomePage = () => {
   return (
     <div className="w-full min-h-screen relative bg-slate-50 text-slate-800">
       {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) */}
-      <button
+      {/* <button
         onClick={fetchStandings}
         className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
       >
         Klasemen
-      </button>
+      </button> */}
 
       {/* CONTAINER LOGO */}
       <div className="fixed top-2 left-2 z-[9999] flex items-center gap-4">
@@ -429,21 +429,23 @@ const HomePage = () => {
           </p>
 
           {/* Selektor Internal/External */}
-{/* Selektor External */}
-<div className="flex justify-center mb-6">
-  <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
-    <button
-      onClick={() => handleGroupChange("external")}
-      className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-        activeGroup === "external"
-          ? "bg-[#00308F] text-white shadow-md"
-          : "text-[#8B8D8E] hover:text-[#00308F]"
-      }`}
-    >
-      External
-    </button>
-  </div>
-</div>
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
+              {["internal", "external"].map((group) => (
+                <button
+                  key={group}
+                  onClick={() => handleGroupChange(group)}
+                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                    activeGroup === group
+                      ? "bg-[#00308F] text-white shadow-md"
+                      : "text-[#8B8D8E] hover:text-[#00308F]"
+                  }`}
+                >
+                  {group === "internal" ? "Internal" : "External"}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <p className="text-xs font-bold text-[#8B8D8E] uppercase tracking-wider mb-3 animate-bounce">
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇

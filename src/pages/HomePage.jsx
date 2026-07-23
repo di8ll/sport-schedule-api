@@ -10,10 +10,15 @@ import { useNavigate } from "react-router-dom";
 // ============================================================
 const SHOW_KLASMEN = false;
 
+// ============================================================
 // 🚩 FEATURE FLAG: SELECTOR INTERNAL / EXTERNAL
-// Set ke `true` untuk memunculkan lagi toggle "Internal / External".
-// Selama `false`, toggle disembunyikan dan grup otomatis dikunci ke "internal".
+// Set ke `true` kapan pun mau menampilkan lagi tombol pilihan
+// "Internal" / "External" di hero section.
+// Selama `false`, tombol selector disembunyikan dan halaman otomatis
+// terkunci menampilkan kategori "External" saja.
+// ============================================================
 const SHOW_GROUP_SELECTOR = false;
+const FORCED_GROUP_WHEN_HIDDEN = "external";
 
 // ============= INDORAMA BRAND TOKENS =============
 const EVENT_DATE_INTERNAL = new Date("2026-07-17T00:00:00");
@@ -264,7 +269,7 @@ const HomePage = () => {
 
   // 1. Inisialisasi state dengan mengambil dari localStorage
   const [activeGroup, setActiveGroup] = useState(() => {
-    if (!SHOW_GROUP_SELECTOR) return "internal";
+    if (!SHOW_GROUP_SELECTOR) return FORCED_GROUP_WHEN_HIDDEN;
     return localStorage.getItem("selectedGroup") || "internal";
   });
 

@@ -1,25 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-// ============================================================
-// 🚩 FEATURE FLAG: KLASEMEN
-// Set ke `true` kapan pun mau menampilkan tombol & modal Klasemen.
-// Selama `false`, tombol "Klasemen" di pojok kanan atas tidak dirender
-// dan modal (tampilan internal) ikut disembunyikan, tapi seluruh
-// logic fetch datanya tetap ada di dalam kode (tidak dihapus).
-// ============================================================
-const SHOW_KLASMEN = false;
-
-// ============================================================
-// 🚩 FEATURE FLAG: SELECTOR INTERNAL / EXTERNAL
-// Set ke `true` kapan pun mau menampilkan lagi tombol pilihan
-// "Internal" / "External" di hero section.
-// Selama `false`, tombol selector disembunyikan dan halaman otomatis
-// terkunci menampilkan kategori "External" saja.
-// ============================================================
-const SHOW_GROUP_SELECTOR = false;
-const FORCED_GROUP_WHEN_HIDDEN = "external";
-
 // ============= INDORAMA BRAND TOKENS =============
 const EVENT_DATE_INTERNAL = new Date("2026-07-17T00:00:00");
 const EVENT_DATE_EXTERNAL = new Date("2026-08-01T00:00:00");
@@ -269,7 +250,6 @@ const HomePage = () => {
 
   // 1. Inisialisasi state dengan mengambil dari localStorage
   const [activeGroup, setActiveGroup] = useState(() => {
-    if (!SHOW_GROUP_SELECTOR) return FORCED_GROUP_WHEN_HIDDEN;
     return localStorage.getItem("selectedGroup") || "internal";
   });
 
@@ -283,10 +263,6 @@ const HomePage = () => {
     activeGroup === "internal" ? EVENT_DATE_INTERNAL : EVENT_DATE_EXTERNAL;
   
   const [timeLeft, setTimeLeft] = useState(getTimeLeft(eventTarget));
-
-  // ============================================================
-  // 🚩 STATE & LOGIC KLASEMEN (disiapkan, tapi hanya tampil kalau SHOW_KLASMEN = true)
-  // ============================================================
   const [isStandingsOpen, setIsStandingsOpen] = useState(false);
   const [standingsData, setStandingsData] = useState([]);
 
@@ -301,7 +277,6 @@ const HomePage = () => {
   }, [eventTarget]);
 
   const fetchStandings = async () => {
-    if (!SHOW_KLASMEN) return; // ekstra pengaman: tidak akan fetch selama fitur disembunyikan
     try {
       const response = await fetch("http://127.0.0.1:8000/api/standings");
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -337,15 +312,13 @@ const HomePage = () => {
 
   return (
     <div className="w-full min-h-screen relative bg-slate-50 text-slate-800">
-      {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) — disembunyikan selama SHOW_KLASMEN = false */}
-      {SHOW_KLASMEN && (
-        <button
-          onClick={fetchStandings}
-          className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
-        >
-          Klasemen
-        </button>
-      )}
+      {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) */}
+      <button
+        onClick={fetchStandings}
+        className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
+      >
+        Klasemen
+      </button>
 
       {/* CONTAINER LOGO */}
       <div className="fixed top-2 left-2 z-[9999] flex items-center gap-4">
@@ -364,8 +337,8 @@ const HomePage = () => {
         />
       </div>
 
-      {/* MODAL KLASEMEN — tampilan internal disembunyikan selama SHOW_KLASMEN = false */}
-      {SHOW_KLASMEN && isStandingsOpen && (
+      {/* MODAL KLASEMEN */}
+      {isStandingsOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
             <div className="p-4 border-b flex justify-between items-center bg-slate-50">
@@ -455,26 +428,22 @@ const HomePage = () => {
             2026
           </p>
 
-          {/* Selektor Internal/External — disembunyikan selama SHOW_GROUP_SELECTOR = false */}
-          {SHOW_GROUP_SELECTOR && (
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
-                {["internal", "external"].map((group) => (
-                  <button
-                    key={group}
-                    onClick={() => handleGroupChange(group)}
-                    className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-                      activeGroup === group
-                        ? "bg-[#00308F] text-white shadow-md"
-                        : "text-[#8B8D8E] hover:text-[#00308F]"
-                    }`}
-                  >
-                    {group === "internal" ? "Internal" : "External"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Selektor Internal/External */}
+{/* Selektor External */}
+<div className="flex justify-center mb-6">
+  <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
+    <button
+      onClick={() => handleGroupChange("external")}
+      className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+        activeGroup === "external"
+          ? "bg-[#00308F] text-white shadow-md"
+          : "text-[#8B8D8E] hover:text-[#00308F]"
+      }`}
+    >
+      External
+    </button>
+  </div>
+</div>
 
           <p className="text-xs font-bold text-[#8B8D8E] uppercase tracking-wider mb-3 animate-bounce">
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇

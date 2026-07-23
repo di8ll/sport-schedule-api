@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
+// ============================================================
+// 🚩 FEATURE FLAG: KLASEMEN
+// Set ke `true` kapan pun mau menampilkan tombol & modal Klasemen.
+// Selama `false`, tombol "Klasemen" di pojok kanan atas tidak dirender
+// dan modal (tampilan internal) ikut disembunyikan, tapi seluruh
+// logic fetch datanya tetap ada di dalam kode (tidak dihapus).
+// ============================================================
+const SHOW_KLASMEN = false;
+
 // ============= INDORAMA BRAND TOKENS =============
 const EVENT_DATE_INTERNAL = new Date("2026-07-17T00:00:00");
 const EVENT_DATE_EXTERNAL = new Date("2026-08-01T00:00:00");
@@ -9,30 +18,18 @@ const EVENT_DATE_EXTERNAL = new Date("2026-08-01T00:00:00");
 // PENTING: sesuaikan key di sini dengan kode klub ASLI dari API kamu.
 // Tambah/ubah baris ini kalau ada kode yang belum cocok.
 const CLUB_LOGO_MAP = {
-  HO: "ho.png",
-  IPCI: "ipci.png",
-  IRT: "irt.png",
-
-  SPG: "spinning.png",
-  SPINNING: "spinning.png",
-
-  WVG: "weaving.png",
-  WEAVING: "weaving.png",
-
-  POLY: "polyester.png",
-  POLYESTER: "polyester.png",
+  HO: "ho",
+  IPCI: "ipci",
+  IRT: "irt",
+  PYT: "polyester",
+  SPG: "spinning",
+  WVG: "weaving",
 };
 
 function getClubLogoSrc(clubCode) {
-  const code = String(clubCode || "")
-    .trim()
-    .toUpperCase();
-
-  const filename =
-    CLUB_LOGO_MAP[code] ||
-    `${code.toLowerCase().replace(/\s+/g, "")}.png`;
-
-  return `/logos/${filename}`;
+  const key = (clubCode || "").toUpperCase();
+  const filename = CLUB_LOGO_MAP[key] || clubCode?.toLowerCase();
+  return `/logos/${filename}.png`;
 }
 
 function getTimeLeft(targetDate) {
@@ -129,8 +126,8 @@ function Dot({ status, className = "" }) {
     status === "done"
       ? "bg-[#00308F]"
       : status === "active"
-        ? "bg-[#ED1C24]"
-        : "bg-white border-2 border-[#DCDAD5]";
+      ? "bg-[#ED1C24]"
+      : "bg-white border-2 border-[#DCDAD5]";
   return (
     <span
       className={`relative flex items-center justify-center w-4 h-4 rounded-full shadow-md ${color} ${className}`}
@@ -147,24 +144,27 @@ function TimelineCard({ event, status, align }) {
   const isActive = status === "active";
   return (
     <div
-      className={`group relative w-full max-w-sm p-4 sm:p-5 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${isActive
+      className={`group relative w-full max-w-sm p-4 sm:p-5 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
+        isActive
           ? "bg-white border-[#ED1C24]/40 shadow-md shadow-[#ED1C24]/10"
           : isDone
-            ? "bg-white/70 border-slate-200"
-            : "bg-slate-50 border-slate-200"
-        } ${align === "right" ? "sm:text-right" : ""}`}
+          ? "bg-white/70 border-slate-200"
+          : "bg-slate-50 border-slate-200"
+      } ${align === "right" ? "sm:text-right" : ""}`}
     >
       {isActive && (
         <span
-          className={`absolute -top-2.5 ${align === "right" ? "right-4" : "left-4"
-            } text-[8px] font-black uppercase tracking-widest bg-[#ED1C24] text-white px-2 py-0.5 rounded-full shadow`}
+          className={`absolute -top-2.5 ${
+            align === "right" ? "right-4" : "left-4"
+          } text-[8px] font-black uppercase tracking-widest bg-[#ED1C24] text-white px-2 py-0.5 rounded-full shadow`}
         >
           Sedang Berlangsung
         </span>
       )}
       <div
-        className={`flex items-center gap-2 mb-1 ${align === "right" ? "sm:flex-row-reverse" : ""
-          }`}
+        className={`flex items-center gap-2 mb-1 ${
+          align === "right" ? "sm:flex-row-reverse" : ""
+        }`}
       >
         <span className="text-xl leading-none">{event.icon}</span>
         <span className="text-[10px] font-black uppercase tracking-widest text-[#8B8D8E]">
@@ -172,8 +172,9 @@ function TimelineCard({ event, status, align }) {
         </span>
       </div>
       <h3
-        className={`text-sm sm:text-base font-black uppercase italic tracking-tight mb-1 ${isDone ? "text-[#00308F]/60" : "text-[#00308F]"
-          }`}
+        className={`text-sm sm:text-base font-black uppercase italic tracking-tight mb-1 ${
+          isDone ? "text-[#00308F]/60" : "text-[#00308F]"
+        }`}
       >
         {event.title}
       </h3>
@@ -192,8 +193,9 @@ function TimelineItem({ event, index }) {
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
+      className={`transition-all duration-700 ease-out ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
       style={{ transitionDelay: `${index * 90}ms` }}
     >
       {/* Mobile layout: single rail on the left */}
@@ -268,8 +270,12 @@ const HomePage = () => {
   // Tanggal target countdown mengikuti grup yang aktif
   const eventTarget =
     activeGroup === "internal" ? EVENT_DATE_INTERNAL : EVENT_DATE_EXTERNAL;
-
+  
   const [timeLeft, setTimeLeft] = useState(getTimeLeft(eventTarget));
+
+  // ============================================================
+  // 🚩 STATE & LOGIC KLASEMEN (disiapkan, tapi hanya tampil kalau SHOW_KLASMEN = true)
+  // ============================================================
   const [isStandingsOpen, setIsStandingsOpen] = useState(false);
   const [standingsData, setStandingsData] = useState([]);
 
@@ -284,89 +290,21 @@ const HomePage = () => {
   }, [eventTarget]);
 
   const fetchStandings = async () => {
+    if (!SHOW_KLASMEN) return; // ekstra pengaman: tidak akan fetch selama fitur disembunyikan
     try {
-      const response = await fetch(
-        "https://api.indoramafoundersday.com/api/standings"
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      const response = await fetch("http://127.0.0.1:8000/api/standings");
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-
-      // Semua klub yang harus selalu tampil
-      const ALL_CLUBS = [
-        { code: "HO" },
-        { code: "IPCI" },
-        { code: "IRT" },
-        { code: "POLY" },
-        { code: "SPG" },
-        { code: "WVG" },
-      ];
-
-      const mergedData = ALL_CLUBS.map((club) => {
-        const standing = Array.isArray(data)
-          ? data.find(
-            (item) =>
-              (item.club?.code || item.club_code || "")
-                .toUpperCase()
-                .trim() === club.code
-          )
-          : null;
-
-        return (
-          standing || {
-            club: {
-              code: club.code,
-            },
-            futsal: 0,
-            catur: 0,
-            badminton: 0,
-            padel: 0,
-            volley_putra: 0,
-            volley_putri: 0,
-            tenis_meja_putra: 0,
-            tenis_meja_putri: 0,
-            total_point: 0,
-          }
-        );
-      });
-
-      // Urutkan berdasarkan total poin terbesar
-      mergedData.sort((a, b) => {
-        const totalA =
-          a.total_point ??
-          (a.futsal ?? 0) +
-          (a.catur ?? 0) +
-          (a.badminton ?? 0) +
-          (a.padel ?? 0) +
-          (a.volley_putra ?? 0) +
-          (a.volley_putri ?? 0) +
-          (a.tenis_meja_putra ?? 0) +
-          (a.tenis_meja_putri ?? 0);
-
-        const totalB =
-          b.total_point ??
-          (b.futsal ?? 0) +
-          (b.catur ?? 0) +
-          (b.badminton ?? 0) +
-          (b.padel ?? 0) +
-          (b.volley_putra ?? 0) +
-          (b.volley_putri ?? 0) +
-          (b.tenis_meja_putra ?? 0) +
-          (b.tenis_meja_putri ?? 0);
-
-        return totalB - totalA;
-      });
-
-      setStandingsData(mergedData);
-      setIsStandingsOpen(true);
+      if (Array.isArray(data)) {
+        setStandingsData(data);
+        setIsStandingsOpen(true);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Gagal mengambil data klasemen:", error);
       alert("Gagal mengambil data klasemen.");
     }
   };
+
   const categoryGroups = {
     internal: [
       { id: "futsal", label: "Futsal", icon: "⚽" },
@@ -388,13 +326,15 @@ const HomePage = () => {
 
   return (
     <div className="w-full min-h-screen relative bg-slate-50 text-slate-800">
-      {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) */}
-      <button
-        onClick={fetchStandings}
-        className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
-      >
-        Klasemen
-      </button>
+      {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) — disembunyikan selama SHOW_KLASMEN = false */}
+      {SHOW_KLASMEN && (
+        <button
+          onClick={fetchStandings}
+          className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
+        >
+          Klasemen
+        </button>
+      )}
 
       {/* CONTAINER LOGO */}
       <div className="fixed top-2 left-2 z-[9999] flex items-center gap-4">
@@ -404,7 +344,7 @@ const HomePage = () => {
           alt="Indorama"
           className="w-28 sm:w-40 drop-shadow-md block"
         />
-
+        
         {/* LOGO POHON */}
         <img
           src="/pohon.png"
@@ -412,92 +352,67 @@ const HomePage = () => {
           className="w-16 sm:w-20 drop-shadow-md block"
         />
       </div>
-      {isStandingsOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl sm:rounded-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
+
+      {/* MODAL KLASEMEN — tampilan internal disembunyikan selama SHOW_KLASMEN = false */}
+      {SHOW_KLASMEN && isStandingsOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col">
             <div className="p-4 border-b flex justify-between items-center bg-slate-50">
-              <h2 className="text-center font-black text-[#00308F] uppercase">
+              <h2 className="font-black text-[#00308F] uppercase">
                 Klasemen Sementara & Perolehan Poin
               </h2>
               <button
                 onClick={() => setIsStandingsOpen(false)}
-                className="text-xl font-bold text-slate-400 hover:text-slate-600"
+                className="text-xl font-bold text-slate-400"
               >
                 ✕
               </button>
             </div>
-            <div className="overflow-x-auto p-2 sm:p-4 -mx-1 sm:mx-0">
-              <table className="w-full min-w-[640px] text-center text-[10px] sm:text-xs border-collapse">
+            <div className="overflow-auto p-4">
+              <table className="w-full text-center text-[10px] sm:text-xs">
                 <thead>
                   <tr className="text-slate-500 uppercase border-b">
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Rank</th>
-                    <th className="p-2 sm:p-3 text-left whitespace-nowrap">Unit</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Futsal</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Catur</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Badminton</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Padel</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Volley PA</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Volley PI</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Meja PA</th>
-                    <th className="p-2 sm:p-3 whitespace-nowrap">Meja PI</th>
-                    <th className="p-2 sm:p-3 text-[#ED1C24] whitespace-nowrap">Total</th>
+                    <th className="p-2">Rank</th>
+                    <th className="p-2">Unit</th>
+                    <th className="p-2">Futsal</th>
+                    <th className="p-2">Catur</th>
+                    <th className="p-2">Badminton</th>
+                    <th className="p-2">Padel</th>
+                    <th className="p-2">Volley (P/W)</th>
+                    <th className="p-2">Tenis Meja (P/W)</th>
+                    <th className="p-2 text-[#ED1C24]">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {standingsData.map((item, index) => {
-                    // Hanya rank 1 (index === 0) yang mendapat medali
-                    const medal = index === 0 ? "🥇" : null;
-
-                    return (
-                      <tr
-                        key={item.club?.code || item.club_code || index}
-                        className={`hover:bg-slate-50 ${medal ? "bg-amber-50/50" : ""}`}
-                      >
-                        <td className="p-2 sm:p-3 font-black text-slate-700">
-                          {index + 1}
-                        </td>
-
-                        <td className="p-2 sm:p-3">
-                          <div className="flex items-center gap-1.5 sm:gap-3">
-                            <img
-                              src={getClubLogoSrc(item.club?.code || item.club_code)}
-                              alt={item.club?.code || item.club_code}
-                              className="w-6 h-6 sm:w-8 sm:h-8 object-contain shrink-0"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                              }}
-                            />
-
-                            <span className="font-bold text-[#00308F] flex items-center gap-1 whitespace-nowrap">
-                              {item.club?.code || item.club_code}
-                              {medal && <span className="text-sm sm:text-base">{medal}</span>}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="p-2 sm:p-3">{item.futsal ?? 0}</td>
-                        <td className="p-2 sm:p-3">{item.catur ?? 0}</td>
-                        <td className="p-2 sm:p-3">{item.badminton ?? 0}</td>
-                        <td className="p-2 sm:p-3">{item.padel ?? 0}</td>
-                        <td className="p-2 sm:p-3">{item.volley_putra ?? item.volley_pa ?? 0}</td>
-                        <td className="p-2 sm:p-3">{item.volley_putri ?? item.volley_pi ?? 0}</td>
-                        <td className="p-2 sm:p-3">{item.tenis_meja_putra ?? item.meja_pa ?? 0}</td>
-                        <td className="p-2 sm:p-3">{item.tenis_meja_putri ?? item.meja_pi ?? 0}</td>
-
-                        <td className="p-2 sm:p-3 font-black text-[#ED1C24]">
-                          {item.total_point ??
-                            (item.futsal ?? 0) +
-                            (item.catur ?? 0) +
-                            (item.badminton ?? 0) +
-                            (item.padel ?? 0) +
-                            (item.volley_putra ?? 0) +
-                            (item.volley_putri ?? 0) +
-                            (item.tenis_meja_putra ?? 0) +
-                            (item.tenis_meja_putri ?? 0)}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {standingsData.map((item, index) => (
+                    <tr key={item.id}>
+                      <td className="p-2 font-bold">{index + 1}</td>
+                      <td className="p-2 font-bold text-[#00308F]">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <img
+                            src={getClubLogoSrc(item.club.code)}
+                            alt={item.club.code}
+                            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                          <span>{item.club.code}</span>
+                        </div>
+                      </td>
+                      <td className="p-2">{item.futsal}</td>
+                      <td className="p-2">{item.catur}</td>
+                      <td className="p-2">{item.badminton}</td>
+                      <td className="p-2">{item.padel}</td>
+                      <td className="p-2">
+                        {item.volley_putra} / {item.volley_putri}
+                      </td>
+                      <td className="p-2">
+                        {item.tenis_meja_putra} / {item.tenis_meja_putri}
+                      </td>
+                      <td className="p-2 font-black text-[#ED1C24]">{item.total_point}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -512,6 +427,8 @@ const HomePage = () => {
           backgroundImage: `linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(248, 250, 252, 1)), url('/stadium-banner.jpg')`,
         }}
       >
+
+        
         <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-[#00308F]/15 via-transparent to-transparent blur-3xl pointer-events-none" />
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#ED1C24]/10 via-transparent to-transparent blur-3xl pointer-events-none" />
 
@@ -534,10 +451,11 @@ const HomePage = () => {
                 <button
                   key={group}
                   onClick={() => handleGroupChange(group)}
-                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeGroup === group
+                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                    activeGroup === group
                       ? "bg-[#00308F] text-white shadow-md"
                       : "text-[#8B8D8E] hover:text-[#00308F]"
-                    }`}
+                  }`}
                 >
                   {group === "internal" ? "Internal" : "External"}
                 </button>
@@ -549,13 +467,14 @@ const HomePage = () => {
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇
           </p>
 
-          {/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
+{/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
           <div className="mb-8 sm:mb-10 w-full max-w-2xl mx-auto px-4">
             <div
-              className={`flex items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none ${categoryGroups[activeGroup].length <= 4
+              className={`flex items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none ${
+                categoryGroups[activeGroup].length <= 4
                   ? "justify-center"
                   : "justify-start sm:justify-center"
-                }`}
+              }`}
             >
               {categoryGroups[activeGroup].map((cat) => (
                 <button

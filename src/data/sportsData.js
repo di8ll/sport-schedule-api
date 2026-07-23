@@ -61,7 +61,7 @@ export const sportTheme = {
     icon: "🏐",
     color: "#ED1C24",
     secondaryColor: "#FCE8E6",
-    banner: "/images/voli.png",
+    banner: "public/images/voli.png",
     type: "Sport",
     isExternal: true,
   },

@@ -61,7 +61,7 @@ export const sportTheme = {
     icon: "🏐",
     color: "#ED1C24",
     secondaryColor: "#FCE8E6",
-    banner: null, // sengaja dikosongin dulu
+    banner: "/images/voli.png",
     type: "Sport",
     isExternal: true,
   },

@@ -10,6 +10,11 @@ import { useNavigate } from "react-router-dom";
 // ============================================================
 const SHOW_KLASMEN = false;
 
+// 🚩 FEATURE FLAG: SELECTOR INTERNAL / EXTERNAL
+// Set ke `true` untuk memunculkan lagi toggle "Internal / External".
+// Selama `false`, toggle disembunyikan dan grup otomatis dikunci ke "internal".
+const SHOW_GROUP_SELECTOR = false;
+
 // ============= INDORAMA BRAND TOKENS =============
 const EVENT_DATE_INTERNAL = new Date("2026-07-17T00:00:00");
 const EVENT_DATE_EXTERNAL = new Date("2026-08-01T00:00:00");
@@ -259,6 +264,7 @@ const HomePage = () => {
 
   // 1. Inisialisasi state dengan mengambil dari localStorage
   const [activeGroup, setActiveGroup] = useState(() => {
+    if (!SHOW_GROUP_SELECTOR) return "internal";
     return localStorage.getItem("selectedGroup") || "internal";
   });
 
@@ -444,24 +450,26 @@ const HomePage = () => {
             2026
           </p>
 
-          {/* Selektor Internal/External */}
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
-              {["internal", "external"].map((group) => (
-                <button
-                  key={group}
-                  onClick={() => handleGroupChange(group)}
-                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    activeGroup === group
-                      ? "bg-[#00308F] text-white shadow-md"
-                      : "text-[#8B8D8E] hover:text-[#00308F]"
-                  }`}
-                >
-                  {group === "internal" ? "Internal" : "External"}
-                </button>
-              ))}
+          {/* Selektor Internal/External — disembunyikan selama SHOW_GROUP_SELECTOR = false */}
+          {SHOW_GROUP_SELECTOR && (
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
+                {["internal", "external"].map((group) => (
+                  <button
+                    key={group}
+                    onClick={() => handleGroupChange(group)}
+                    className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                      activeGroup === group
+                        ? "bg-[#00308F] text-white shadow-md"
+                        : "text-[#8B8D8E] hover:text-[#00308F]"
+                    }`}
+                  >
+                    {group === "internal" ? "Internal" : "External"}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <p className="text-xs font-bold text-[#8B8D8E] uppercase tracking-wider mb-3 animate-bounce">
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇

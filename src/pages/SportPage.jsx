@@ -13,6 +13,15 @@ const DETAIL_MODAL_ENABLED_CATEGORIES = ["padel"];
 // Kalau mau ganti video/live per pertandingan, sesuaikan logikanya di sini (misal simpan per-match di DB).
 const PADEL_LIVE_STREAM_EMBED_URL = "https://www.youtube.com/embed/G4ejnqXNIR4?si=s9UpQUpZJaK1Dl1J";
 
+// ⬇️ BARU (khusus EKSTERNAL): slug di URL ("volly", "basket") beda penulisan
+// dengan sport_type yang tersimpan di database eksternal ("volley_putra", "basket_putra", dst).
+// Mapping ini dipakai HANYA saat theme.isExternal === true, supaya filter kategori
+// tetap cocok. Internal (futsal, volley, dst) sama sekali tidak kena efek ini.
+const EXTERNAL_CATEGORY_TO_SPORT_PREFIX = {
+  volly: "volley",
+  basket: "basket",
+};
+
 const SportPage = () => {
   const { category } = useParams();
   const navigate = useNavigate();
@@ -34,9 +43,15 @@ const SportPage = () => {
   // State untuk melacak halaman item saat ini
   const [currentPage, setCurrentPage] = useState(0);
 
+  const theme = sportTheme[category] || sportTheme.futsal;
+
   // Apakah cabang olahraga saat ini boleh membuka modal detail (dan live streaming)?
   const isDetailModalEnabled = DETAIL_MODAL_ENABLED_CATEGORIES.includes(category);
   const isPadel = category === "padel";
+
+  // Apakah kategori saat ini EKSTERNAL (antar sekolah)? Dipakai untuk menentukan
+  // endpoint API & nama field relasi tim yang benar (school_a/school_b vs club_a/club_b).
+  const isExternalSport = theme.isExternal;
 
   // Fungsi Helper untuk memetakan KODE CLUB dari database ke NAMA FILE LOGO di public/logos/
   const getLogoFileName = (teamCode) => {
@@ -83,27 +98,48 @@ const SportPage = () => {
         ? category.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
         : "";
 
-      const normalizedCategory = normalize(baseCategory);
+      // Untuk eksternal, cocokkan slug URL ("volly"/"basket") ke prefix sport_type
+      // asli di database ("volley"/"basket") lewat mapping di atas.
+      const normalizedCategory = isExternalSport
+        ? normalize(EXTERNAL_CATEGORY_TO_SPORT_PREFIX[category] || category)
+        : normalize(baseCategory);
 
-      const res = await api.get(`/matches`, { params: {} });
+      // Endpoint jadwal: internal tetap /matches, eksternal pindah ke /external/matches
+      const endpoint = isExternalSport ? "/external/matches" : "/matches";
+
+      const res = await api.get(endpoint, { params: {} });
 
       if (res.data && res.data.length > 0) {
-        const rawData = res.data.map((m) => ({
-          id: m.id,
-          date: m.match_date,
-          time: m.match_time,
-          stage: m.stage || "Babak Penyisihan",
-          sportType: m.sport_type,
-          teamA: m.club_a?.code ?? m.club_a?.name ?? "Unknown Team",
-          teamB: m.club_b?.code ?? m.club_b?.name ?? "Unknown Team",
-          // simpan juga club_id asli, dipakai buat fetch roster pemain
-          teamAId: m.club_a?.id ?? m.club_a_id ?? null,
-          teamBId: m.club_b?.id ?? m.club_b_id ?? null,
-          scoreA: m.score_a ?? 0,
-          scoreB: m.score_b ?? 0,
-          venue: m.venue,
-          status: m.status,
-        }));
+        const rawData = res.data.map((m) => {
+          // Nama relasi tim beda antara internal (club_a/club_b)
+          // dan eksternal (school_a/school_b) — sesuai controller masing-masing.
+          const teamAData = isExternalSport ? m.school_a : m.club_a;
+          const teamBData = isExternalSport ? m.school_b : m.club_b;
+
+          const teamAId = isExternalSport
+            ? (m.school_a?.id ?? m.school_a_id ?? null)
+            : (m.club_a?.id ?? m.club_a_id ?? null);
+          const teamBId = isExternalSport
+            ? (m.school_b?.id ?? m.school_b_id ?? null)
+            : (m.club_b?.id ?? m.club_b_id ?? null);
+
+          return {
+            id: m.id,
+            date: m.match_date,
+            time: m.match_time,
+            stage: m.stage || "Babak Penyisihan",
+            sportType: m.sport_type,
+            teamA: teamAData?.code ?? teamAData?.name ?? "Unknown Team",
+            teamB: teamBData?.code ?? teamBData?.name ?? "Unknown Team",
+            // simpan juga id tim asli, dipakai buat fetch roster pemain
+            teamAId,
+            teamBId,
+            scoreA: m.score_a ?? 0,
+            scoreB: m.score_b ?? 0,
+            venue: m.venue,
+            status: m.status,
+          };
+        });
 
         const finalData = rawData.filter((m) =>
           normalize(m.sportType).includes(normalizedCategory)
@@ -141,8 +177,6 @@ const SportPage = () => {
   useEffect(() => {
     setCurrentPage(0);
   }, [activeTab]);
-
-  const theme = sportTheme[category] || sportTheme.futsal;
 
   const filteredMatches = matches.filter((m) => {
     const status = m.status?.toUpperCase().trim();
@@ -182,8 +216,13 @@ const SportPage = () => {
     const loadPlayers = async () => {
       setLoadingPlayers(true);
       try {
-        // Panggil endpoint baru yang sudah dibuat
-        const response = await api.get(`/matches/${selectedMatchId}/players`);
+        // Endpoint roster: internal tetap /matches/{id}/players,
+        // eksternal pindah ke /external/matches/{id}/players
+        const endpoint = isExternalSport
+          ? `/external/matches/${selectedMatchId}/players`
+          : `/matches/${selectedMatchId}/players`;
+
+        const response = await api.get(endpoint);
 
         // Akses data sesuai struktur respons JSON:
         // { "status": "success", "data": { "club_a": {...}, "club_b": {...}, "selected_ids": [...] } }

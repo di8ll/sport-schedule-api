@@ -4,16 +4,28 @@ import { useParams, useNavigate } from "react-router-dom";
 import { sportTheme } from "../data/sportsData";
 import api from "../services/api";
 
-// ⬇️ Daftar cabang olahraga yang boleh membuka modal detail (dengan live streaming + skor).
-// Cabang lain di luar daftar ini TETAP tidak bisa diklik, sesuai perilaku sebelumnya.
-// Kalau nanti mau tambah cabang lain yang bisa dibuka detailnya, tinggal tambahkan slug-nya di sini.
-const DETAIL_MODAL_ENABLED_CATEGORIES = ["padel"];
+// ⬇️ File ini KHUSUS untuk cabang EXTERNAL (Antar Sekolah).
+// Dipisah dari SportPage.jsx (internal) supaya SportPage internal
+// TIDAK PERLU DIUBAH SAMA SEKALI, sesuai permintaan.
+//
+// Perbedaan utama dari SportPage internal:
+// 1. Fetch data pakai endpoint /external/matches & /external/matches/{id}/players
+// 2. Tema/kategori diambil dari cabang yang isExternal: true di sportsData.js (volly, basket)
+// 3. Key localStorage dibedakan (pakai prefix "external_") biar tidak bentrok
+//    dengan tab yang dipilih user di halaman internal.
 
-// ⬇️ Link live streaming YouTube untuk cabang Padel.
-// Kalau mau ganti video/live per pertandingan, sesuaikan logikanya di sini (misal simpan per-match di DB).
-const PADEL_LIVE_STREAM_EMBED_URL = "https://www.youtube.com/embed/G4ejnqXNIR4?si=s9UpQUpZJaK1Dl1J";
+// Daftar cabang olahraga EXTERNAL yang boleh membuka modal detail (live streaming + skor).
+// Kosongkan array ini kalau belum ada cabang external yang butuh modal detail.
+const DETAIL_MODAL_ENABLED_CATEGORIES = [];
 
-const SportPage = () => {
+// Link live streaming YouTube (kalau nanti ada cabang external yang live streaming-nya
+// mau ditampilkan, isi slug & url-nya di sini, mirip pola PADEL_LIVE_STREAM_EMBED_URL
+// di SportPage internal).
+const LIVE_STREAM_EMBED_URLS = {
+  // contoh: basket: "https://www.youtube.com/embed/XXXXXXXXXXX",
+};
+
+const SportPageExternal = () => {
   const { category } = useParams();
   const navigate = useNavigate();
 
@@ -21,27 +33,22 @@ const SportPage = () => {
   const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem(`activeTab_${category}`) || "jadwal";
+    return localStorage.getItem(`external_activeTab_${category}`) || "jadwal";
   });
   const [selectedMatchId, setSelectedMatchId] = useState(null);
 
-  // Roster pemain untuk modal detail (Tim A & Tim B)
   const [teamAPlayers, setTeamAPlayers] = useState([]);
   const [teamBPlayers, setTeamBPlayers] = useState([]);
-  const [selectedPlayerIds, setSelectedPlayerIds] = useState([]); // ⬅️ FIX: state ini sebelumnya belum dideklarasikan
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
 
-  // State untuk melacak halaman item saat ini
   const [currentPage, setCurrentPage] = useState(0);
 
-  // Apakah cabang olahraga saat ini boleh membuka modal detail (dan live streaming)?
   const isDetailModalEnabled = DETAIL_MODAL_ENABLED_CATEGORIES.includes(category);
-  const isPadel = category === "padel";
+  const liveStreamEmbedUrl = LIVE_STREAM_EMBED_URLS[category];
 
-  // Fungsi Helper untuk memetakan KODE CLUB dari database ke NAMA FILE LOGO di public/logos/
   const getLogoFileName = (teamCode) => {
     if (!teamCode) return "default-club.png";
-
     const code = teamCode.toUpperCase().trim();
 
     switch (code) {
@@ -65,18 +72,17 @@ const SportPage = () => {
     }
   };
 
-  // Fungsi bantu: bersihkan string jadi format polos (lowercase, tanpa spasi/underscore/hyphen)
   const normalize = (str) => {
     if (!str) return "";
     return str.toLowerCase().replace(/[_\-\s]+/g, "");
   };
 
-  // Fungsi bantu: potong format jam "15:00:00" jadi "15:00"
   const formatTime = (timeStr) => {
     if (!timeStr) return "";
     return timeStr.slice(0, 5);
   };
 
+  // ⬇️ PERBEDAAN UTAMA #1: fetch ke endpoint EXTERNAL, bukan /matches biasa
   const loadMatch = async () => {
     try {
       let baseCategory = category
@@ -85,7 +91,7 @@ const SportPage = () => {
 
       const normalizedCategory = normalize(baseCategory);
 
-      const res = await api.get(`/matches`, { params: {} });
+      const res = await api.get(`/external/matches`, { params: {} });
 
       if (res.data && res.data.length > 0) {
         const rawData = res.data.map((m) => ({
@@ -96,7 +102,6 @@ const SportPage = () => {
           sportType: m.sport_type,
           teamA: m.club_a?.code ?? m.club_a?.name ?? "Unknown Team",
           teamB: m.club_b?.code ?? m.club_b?.name ?? "Unknown Team",
-          // simpan juga club_id asli, dipakai buat fetch roster pemain
           teamAId: m.club_a?.id ?? m.club_a_id ?? null,
           teamBId: m.club_b?.id ?? m.club_b_id ?? null,
           scoreA: m.score_a ?? 0,
@@ -114,7 +119,7 @@ const SportPage = () => {
       }
       setMatches([]);
     } catch (err) {
-      console.warn("Gagal mengambil data dari API:", err.message);
+      console.warn("Gagal mengambil data external dari API:", err.message);
       setMatches([]);
     } finally {
       setLoading(false);
@@ -131,7 +136,7 @@ const SportPage = () => {
   }, [category]);
 
   useEffect(() => {
-    localStorage.setItem(`activeTab_${category}`, activeTab);
+    localStorage.setItem(`external_activeTab_${category}`, activeTab);
   }, [activeTab, category]);
 
   useEffect(() => {
@@ -142,7 +147,7 @@ const SportPage = () => {
     setCurrentPage(0);
   }, [activeTab]);
 
-  const theme = sportTheme[category] || sportTheme.futsal;
+  const theme = sportTheme[category] || sportTheme.volly;
 
   const filteredMatches = matches.filter((m) => {
     const status = m.status?.toUpperCase().trim();
@@ -162,38 +167,32 @@ const SportPage = () => {
 
   const selectedMatch = matches.find((m) => m.id === selectedMatchId);
 
-  // Handler klik card: modal cuma dibuka kalau cabang olahraganya termasuk
-  // dalam DETAIL_MODAL_ENABLED_CATEGORIES (saat ini hanya "padel").
   const handleCardClick = (matchId) => {
     if (isDetailModalEnabled) {
       setSelectedMatchId(matchId);
     }
   };
 
-  // ================= FETCH ROSTER PEMAIN SAAT MODAL DIBUKA =================
+  // ⬇️ PERBEDAAN UTAMA #2: fetch roster pemain ke endpoint EXTERNAL
   useEffect(() => {
     if (!selectedMatch) {
       setTeamAPlayers([]);
       setTeamBPlayers([]);
-      setSelectedPlayerIds([]); // ⬅️ FIX: reset juga saat modal ditutup
+      setSelectedPlayerIds([]);
       return;
     }
 
     const loadPlayers = async () => {
       setLoadingPlayers(true);
       try {
-        // Panggil endpoint baru yang sudah dibuat
-        const response = await api.get(`/matches/${selectedMatchId}/players`);
-
-        // Akses data sesuai struktur respons JSON:
-        // { "status": "success", "data": { "club_a": {...}, "club_b": {...}, "selected_ids": [...] } }
+        const response = await api.get(`/external/matches/${selectedMatchId}/players`);
         const result = response.data.data;
 
         setTeamAPlayers(result.club_a?.players || []);
         setTeamBPlayers(result.club_b?.players || []);
         setSelectedPlayerIds(result.selected_ids || []);
       } catch (err) {
-        console.warn("Gagal mengambil data roster pemain:", err.message);
+        console.warn("Gagal mengambil data roster pemain external:", err.message);
         setTeamAPlayers([]);
         setTeamBPlayers([]);
         setSelectedPlayerIds([]);
@@ -265,22 +264,11 @@ const SportPage = () => {
         <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-3">
-
               {[
-                {
-                  id: "jadwal",
-                  label: "Akan Datang",
-                },
-                {
-                  id: "live",
-                  label: "Berlangsung",
-                },
-                {
-                  id: "hasil",
-                  label: "Hasil Pertandingan",
-                },
+                { id: "jadwal", label: "Akan Datang" },
+                { id: "live", label: "Berlangsung" },
+                { id: "hasil", label: "Hasil Pertandingan" },
               ].map((tab) => {
-
                 const isSelected = activeTab === tab.id;
 
                 return (
@@ -333,12 +321,9 @@ const SportPage = () => {
                         {liveCount}
                       </span>
                     )}
-
                   </button>
                 );
-
               })}
-
             </div>
           </div>
         </div>
@@ -494,10 +479,9 @@ const SportPage = () => {
                           </div>
                         </div>
 
-                        {/* Hint "klik untuk detail" cuma tampil untuk cabang yang modalnya aktif */}
                         {isDetailModalEnabled && (
                           <div className="w-full text-center mt-2 sm:mt-3 pt-2 border-t border-slate-100 text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            {isPadel && isLive ? "Klik untuk Nonton Live + Detail 🔴" : "Klik untuk Detail Pertandingan 📋"}
+                            {liveStreamEmbedUrl && isLive ? "Klik untuk Nonton Live + Detail 🔴" : "Klik untuk Detail Pertandingan 📋"}
                           </div>
                         )}
                       </div>
@@ -551,9 +535,6 @@ const SportPage = () => {
       </div>
 
       {/* ================= 4. DETAILED MODAL OVERLAY ================= */}
-      {/* Modal ini hanya bisa terbuka untuk cabang yang ada di
-          DETAIL_MODAL_ENABLED_CATEGORIES (saat ini hanya "padel"), karena
-          selectedMatchId cuma di-set lewat handleCardClick yang sudah digating. */}
       {selectedMatch && (
         <div
           className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
@@ -563,7 +544,6 @@ const SportPage = () => {
             className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[92vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Modal */}
             <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-900 text-white flex items-center justify-between shrink-0 gap-2">
               <div className="flex flex-col min-w-0">
                 <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-teal-400 truncate">
@@ -581,18 +561,15 @@ const SportPage = () => {
               </button>
             </div>
 
-            {/* Konten Modal */}
             <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-5 p-4 sm:p-5">
-
-              {/* ================= LIVE STREAMING YOUTUBE (khusus Padel) ================= */}
-              {isPadel && (
+              {liveStreamEmbedUrl && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                   {selectedMatch.status === "LIVE" ? (
                     <div className="aspect-video w-full bg-black">
                       <iframe
                         className="w-full h-full"
-                        src={PADEL_LIVE_STREAM_EMBED_URL}
-                        title="Live Streaming Padel"
+                        src={liveStreamEmbedUrl}
+                        title="Live Streaming"
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         referrerPolicy="strict-origin-when-cross-origin"
@@ -615,7 +592,6 @@ const SportPage = () => {
                 </div>
               )}
 
-              {/* Papan Skor Utama */}
               <div className="flex items-center justify-between bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-100 gap-1">
                 <div className="w-[35%] flex flex-col items-center text-center">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
@@ -662,7 +638,6 @@ const SportPage = () => {
                 </div>
               </div>
 
-              {/* Info tambahan sederhana */}
               <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2 text-xs">
                 {selectedMatch.sportType && (
                   <div className="flex justify-between">
@@ -690,7 +665,6 @@ const SportPage = () => {
                 </div>
               </div>
 
-              {/* ================= ROSTER PEMAIN KEDUA TIM ================= */}
               <div>
                 <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
                   👥 Daftar Starting Line Up
@@ -702,7 +676,6 @@ const SportPage = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Tim A */}
                     <div className="bg-white border border-slate-200 rounded-xl p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
                         {selectedMatch.teamA}
@@ -725,7 +698,6 @@ const SportPage = () => {
                       )}
                     </div>
 
-                    {/* Tim B */}
                     <div className="bg-white border border-slate-200 rounded-xl p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
                         {selectedMatch.teamB}
@@ -758,4 +730,4 @@ const SportPage = () => {
   );
 };
 
-export default SportPage;
+export default SportPageExternal;

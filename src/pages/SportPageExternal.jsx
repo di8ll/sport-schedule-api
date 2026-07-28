@@ -13,6 +13,13 @@ import api from "../services/api";
 // 2. Tema/kategori diambil dari cabang yang isExternal: true di sportsData.js (volly, basket)
 // 3. Key localStorage dibedakan (pakai prefix "external_") biar tidak bentrok
 //    dengan tab yang dipilih user di halaman internal.
+//
+// CATATAN PERUBAHAN:
+// - teamA / teamB sekarang berisi NAMA SEKOLAH (bukan kode), dipakai untuk
+//   ditampilkan di UI (kartu pertandingan & modal detail).
+// - teamACode / teamBCode tetap disimpan terpisah, khusus dipakai untuk
+//   mencari file logo lewat getLogoFileName() (karena mapping logo
+//   berdasarkan kode sekolah, bukan nama panjangnya).
 
 // Daftar cabang olahraga EXTERNAL yang boleh membuka modal detail (live streaming + skor).
 // Kosongkan array ini kalau belum ada cabang external yang butuh modal detail.
@@ -94,23 +101,25 @@ const SportPageExternal = () => {
       const res = await api.get(`/external/matches`, { params: {} });
 
       if (res.data && res.data.length > 0) {
-            const rawData = res.data.map((m) => ({
-            id: m.id,
-            date: m.match_date,
-            time: m.match_time,
-            stage: m.stage || "Babak Penyisihan",
-            sportType: m.sport_type,
-            teamA: m.club_a?.name ?? m.club_a?.code ?? "Unknown Team",
-            teamB: m.club_b?.name ?? m.club_b?.code ?? "Unknown Team",
-            teamACode: m.club_a?.code ?? "",
-            teamBCode: m.club_b?.code ?? "",
-            teamAId: m.club_a?.id ?? m.club_a_id ?? null,
-            teamBId: m.club_b?.id ?? m.club_b_id ?? null,
-            scoreA: m.score_a ?? 0,
-            scoreB: m.score_b ?? 0,
-            venue: m.venue,
-            status: m.status,
-            }));
+        const rawData = res.data.map((m) => ({
+          id: m.id,
+          date: m.match_date,
+          time: m.match_time,
+          stage: m.stage || "Babak Penyisihan",
+          sportType: m.sport_type,
+          // Nama sekolah dipakai untuk tampilan (fallback ke code kalau name kosong)
+          teamA: m.club_a?.name ?? m.club_a?.code ?? "Unknown Team",
+          teamB: m.club_b?.name ?? m.club_b?.code ?? "Unknown Team",
+          // Kode sekolah tetap disimpan terpisah, khusus untuk lookup logo
+          teamACode: m.club_a?.code ?? "",
+          teamBCode: m.club_b?.code ?? "",
+          teamAId: m.club_a?.id ?? m.club_a_id ?? null,
+          teamBId: m.club_b?.id ?? m.club_b_id ?? null,
+          scoreA: m.score_a ?? 0,
+          scoreB: m.score_b ?? 0,
+          venue: m.venue,
+          status: m.status,
+        }));
 
         const finalData = rawData.filter((m) =>
           normalize(m.sportType).includes(normalizedCategory)
@@ -431,7 +440,7 @@ const SportPageExternal = () => {
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                               <img
-                                src={`/logos/${getLogoFileName(match.teamA)}`}
+                                src={`/logos/${getLogoFileName(match.teamACode)}`}
                                 alt={match.teamA}
                                 className="w-full h-full object-contain p-1 sm:p-1.5"
                                 onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
@@ -469,7 +478,7 @@ const SportPageExternal = () => {
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                               <img
-                                src={`/logos/${getLogoFileName(match.teamB)}`}
+                                src={`/logos/${getLogoFileName(match.teamBCode)}`}
                                 alt={match.teamB}
                                 className="w-full h-full object-contain p-1 sm:p-1.5"
                                 onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
@@ -598,7 +607,7 @@ const SportPageExternal = () => {
                 <div className="w-[35%] flex flex-col items-center text-center">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
                     <img
-                      src={`/logos/${getLogoFileName(selectedMatch.teamA)}`}
+                      src={`/logos/${getLogoFileName(selectedMatch.teamACode)}`}
                       alt={selectedMatch.teamA}
                       className="w-full h-full object-contain p-1"
                       onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
@@ -630,7 +639,7 @@ const SportPageExternal = () => {
                 <div className="w-[35%] flex flex-col items-center text-center">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
                     <img
-                      src={`/logos/${getLogoFileName(selectedMatch.teamB)}`}
+                      src={`/logos/${getLogoFileName(selectedMatch.teamBCode)}`}
                       alt={selectedMatch.teamB}
                       className="w-full h-full object-contain p-1"
                       onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}

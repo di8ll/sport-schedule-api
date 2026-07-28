@@ -94,21 +94,23 @@ const SportPageExternal = () => {
       const res = await api.get(`/external/matches`, { params: {} });
 
       if (res.data && res.data.length > 0) {
-        const rawData = res.data.map((m) => ({
-          id: m.id,
-          date: m.match_date,
-          time: m.match_time,
-          stage: m.stage || "Babak Penyisihan",
-          sportType: m.sport_type,
-          teamA: m.club_a?.code ?? m.club_a?.name ?? "Unknown Team",
-          teamB: m.club_b?.code ?? m.club_b?.name ?? "Unknown Team",
-          teamAId: m.club_a?.id ?? m.club_a_id ?? null,
-          teamBId: m.club_b?.id ?? m.club_b_id ?? null,
-          scoreA: m.score_a ?? 0,
-          scoreB: m.score_b ?? 0,
-          venue: m.venue,
-          status: m.status,
-        }));
+            const rawData = res.data.map((m) => ({
+            id: m.id,
+            date: m.match_date,
+            time: m.match_time,
+            stage: m.stage || "Babak Penyisihan",
+            sportType: m.sport_type,
+            teamA: m.club_a?.name ?? m.club_a?.code ?? "Unknown Team",
+            teamB: m.club_b?.name ?? m.club_b?.code ?? "Unknown Team",
+            teamACode: m.club_a?.code ?? "",
+            teamBCode: m.club_b?.code ?? "",
+            teamAId: m.club_a?.id ?? m.club_a_id ?? null,
+            teamBId: m.club_b?.id ?? m.club_b_id ?? null,
+            scoreA: m.score_a ?? 0,
+            scoreB: m.score_b ?? 0,
+            venue: m.venue,
+            status: m.status,
+            }));
 
         const finalData = rawData.filter((m) =>
           normalize(m.sportType).includes(normalizedCategory)

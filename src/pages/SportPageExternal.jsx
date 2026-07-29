@@ -700,33 +700,6 @@ const SportPageExternal = () => {
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2 text-xs">
-                {selectedMatch.sportType && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 font-bold uppercase tracking-wide">Kategori</span>
-                    <span className={`font-bold ${selectedMatch.sportType.toLowerCase().includes("putri") ? "text-pink-600" : "text-blue-600"}`}>
-                      {selectedMatch.sportType}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-bold uppercase tracking-wide">Tanggal</span>
-                  <span className="font-bold text-slate-700">{selectedMatch.date}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-bold uppercase tracking-wide">Jam</span>
-                  <span className="font-bold text-slate-700">{formatTime(selectedMatch.time)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-bold uppercase tracking-wide">Venue</span>
-                  <span className="font-bold text-slate-700">{selectedMatch.venue}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400 font-bold uppercase tracking-wide">Babak</span>
-                  <span className="font-bold text-slate-700">{selectedMatch.stage}</span>
-                </div>
-              </div>
-
               <div>
                 <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
                   👥 Daftar Starting Line Up

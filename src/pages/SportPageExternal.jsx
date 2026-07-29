@@ -63,9 +63,9 @@ const SportPageExternal = () => {
   // mengikuti mayoritas file yang sudah ada — kalau ternyata ekstensi
   // aslinya beda (mis. .png/.webp), tinggal ganti di baris terkait saja.
   const SCHOOL_LOGO_FILES = {
-    manpurwakarta: "manpurwakarta.jpeg",
+    manpurwakarta: "manpurwakarta.jpg",
     smafullday: "smafullday.jpg",
-    smapgri1purwakarta: "smapgri1pwk.jpeg",
+    smapgri1purwakarta: "smapgri1pwk.jpg",
     sman1bungursari: "sman1bungursari.jpg",
     sman1campaka: "sman1campaka.jpg",
     sman1cibatu: "sman1cibatu.jpg",

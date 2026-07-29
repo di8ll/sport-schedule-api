@@ -70,7 +70,7 @@ export const sportTheme = {
     icon: "🏀",
     color: "#B45309",
     secondaryColor: "#FEF3C7",
-    banner: "images/basket.png",
+    banner: "/images/basket.png",
     type: "Sport",
     isExternal: true,
   },

@@ -14,15 +14,18 @@ import api from "../services/api";
 // 3. Key localStorage dibedakan (pakai prefix "external_") biar tidak bentrok
 //    dengan tab yang dipilih user di halaman internal.
 
-// Daftar cabang olahraga EXTERNAL yang boleh membuka modal detail (live streaming + skor).
-// Kosongkan array ini kalau belum ada cabang external yang butuh modal detail.
-const DETAIL_MODAL_ENABLED_CATEGORIES = [];
+// ⬇️ Daftar cabang olahraga EXTERNAL yang boleh membuka modal detail
+// (live streaming + skor + roster pemain). Tambahkan slug-nya di sini
+// kalau ada cabang external lain yang mau dibuka detailnya juga.
+const DETAIL_MODAL_ENABLED_CATEGORIES = ["basket", "volly"];
 
-// Link live streaming YouTube (kalau nanti ada cabang external yang live streaming-nya
-// mau ditampilkan, isi slug & url-nya di sini, mirip pola PADEL_LIVE_STREAM_EMBED_URL
-// di SportPage internal).
+// ⬇️ Link live streaming YouTube per kategori.
+// Video HANYA muncul kalau status pertandingan == "LIVE".
+// Kalau kategori belum ada link-nya (misal "volly"), modal tetap kebuka
+// (skor + roster tetap tampil), cuma bagian video-nya nggak dirender.
 const LIVE_STREAM_EMBED_URLS = {
-  // contoh: basket: "https://www.youtube.com/embed/XXXXXXXXXXX",
+  basket: "https://www.youtube.com/embed/-P4c8E0P0cU?si=xOMZsvTm0AhSigD6",
+  // volly: "https://www.youtube.com/embed/XXXXXXXXXXX",
 };
 
 const SportPageExternal = () => {
@@ -94,23 +97,23 @@ const SportPageExternal = () => {
       const res = await api.get(`/external/matches`, { params: {} });
 
       if (res.data && res.data.length > 0) {
-            const rawData = res.data.map((m) => ({
-            id: m.id,
-            date: m.match_date,
-            time: m.match_time,
-            stage: m.stage || "Babak Penyisihan",
-            sportType: m.sport_type,
-            teamA: m.school_a?.name ?? m.school_a?.code ?? "Unknown Team",
-            teamB: m.school_b?.name ?? m.school_b?.code ?? "Unknown Team",
-            teamACode: m.school_a?.code ?? "",
-            teamBCode: m.school_b?.code ?? "",
-            teamAId: m.school_a?.id ?? m.school_a_id ?? null,
-            teamBId: m.school_b?.id ?? m.school_b_id ?? null,
-            scoreA: m.score_a ?? 0,
-            scoreB: m.score_b ?? 0,
-            venue: m.venue,
-            status: m.status,
-            }));
+        const rawData = res.data.map((m) => ({
+          id: m.id,
+          date: m.match_date,
+          time: m.match_time,
+          stage: m.stage || "Babak Penyisihan",
+          sportType: m.sport_type,
+          teamA: m.school_a?.name ?? m.school_a?.code ?? "Unknown Team",
+          teamB: m.school_b?.name ?? m.school_b?.code ?? "Unknown Team",
+          teamACode: m.school_a?.code ?? "",
+          teamBCode: m.school_b?.code ?? "",
+          teamAId: m.school_a?.id ?? m.school_a_id ?? null,
+          teamBId: m.school_b?.id ?? m.school_b_id ?? null,
+          scoreA: m.score_a ?? 0,
+          scoreB: m.score_b ?? 0,
+          venue: m.venue,
+          status: m.status,
+        }));
 
         const finalData = rawData.filter((m) =>
           normalize(m.sportType).includes(normalizedCategory)
@@ -190,8 +193,9 @@ const SportPageExternal = () => {
         const response = await api.get(`/external/matches/${selectedMatchId}/players`);
         const result = response.data.data;
 
-        setTeamAPlayers(result.club_a?.players || []);
-        setTeamBPlayers(result.club_b?.players || []);
+        // ⬅️ FIX: API external pakai key "school_a" / "school_b", bukan "club_a" / "club_b"
+        setTeamAPlayers(result.school_a?.players || []);
+        setTeamBPlayers(result.school_b?.players || []);
         setSelectedPlayerIds(result.selected_ids || []);
       } catch (err) {
         console.warn("Gagal mengambil data roster pemain external:", err.message);
@@ -564,6 +568,9 @@ const SportPageExternal = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-5 p-4 sm:p-5">
+              {/* ================= LIVE STREAMING YOUTUBE ================= */}
+              {/* Video HANYA muncul kalau: (1) kategori ini punya link di LIVE_STREAM_EMBED_URLS,
+                  DAN (2) status pertandingan == "LIVE". Selain itu tampil placeholder info. */}
               {liveStreamEmbedUrl && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                   {selectedMatch.status === "LIVE" ? (

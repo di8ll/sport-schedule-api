@@ -246,16 +246,9 @@ const SportPageExternal = () => {
         const response = await api.get(`/external/matches/${selectedMatchId}/players`);
         const result = response.data.data;
 
-        // ⬅️ FIX: API external (Admin\ExternalPlayerWebController::getMatchPlayers)
-        // mengirim key "club_a" / "club_b", BUKAN "school_a" / "school_b".
-        // Sebelumnya di sini dibaca "school_a"/"school_b" sehingga selalu
-        // undefined -> roster selalu kosong walau API sudah punya datanya
-        // (lihat response API di endpoint /external/matches/{id}/players,
-        // key-nya "club_a" dan "club_b"). Controller-nya TIDAK diubah
-        // karena data pemain sudah terlanjur diinput lewat form yang
-        // memakai controller tsb, jadi fix cukup di sisi FE ini saja.
-        setTeamAPlayers(result.club_a?.players || []);
-        setTeamBPlayers(result.club_b?.players || []);
+        // ⬅️ FIX: API external pakai key "school_a" / "school_b", bukan "club_a" / "club_b"
+        setTeamAPlayers(result.school_a?.players || []);
+        setTeamBPlayers(result.school_b?.players || []);
         setSelectedPlayerIds(result.selected_ids || []);
       } catch (err) {
         console.warn("Gagal mengambil data roster pemain external:", err.message);

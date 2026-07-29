@@ -55,36 +55,39 @@ const SportPageExternal = () => {
     return str.toLowerCase().replace(/[_\-\s]+/g, "");
   };
 
-  // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma,
-  // LENGKAP dengan ekstensi aslinya.
-  // ⚠️ CATATAN: 18 sekolah di bawah ini sudah disamakan dengan data terbaru
-  // di database (lihat query "external_school"). Untuk sekolah yang baru
-  // ditambahkan (belum ada di versi sebelumnya), ekstensi diasumsikan ".jpg"
-  // mengikuti mayoritas file yang sudah ada — kalau ternyata ekstensi
-  // aslinya beda (mis. .png/.webp), tinggal ganti di baris terkait saja.
+  // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma.
+  // ⚠️ PENTING: nama file di folder logosma TERNYATA masih pakai SPASI
+  // dan HURUF KAPITAL asli (contoh: "SMAN 1 Bungursari.jpg"), BUKAN
+  // "sman1bungursari.jpg" seperti versi sebelumnya. Itu sebabnya logo
+  // tidak muncul (request ke gambar 404) — key di objek ini tetap
+  // dinormalisasi (lowercase, tanpa spasi) supaya gampang dicocokkan
+  // dengan nama dari API, tapi VALUE-nya sekarang persis sama dengan
+  // nama file asli di folder (lihat screenshot Windows Explorer). Saat
+  // dipakai sebagai src <img>, nama file ini di-encode dulu
+  // (encodeURIComponent) di getSchoolLogoFileName supaya spasinya tidak
+  // bikin browser gagal load.
   const SCHOOL_LOGO_FILES = {
-    manpurwakarta: "manpurwakarta.jpg",
-    smafullday: "smafullday.jpg",
-    smapgri1purwakarta: "smapgri1pwk.jpg",
-    sman1bungursari: "sman1bungursari.jpg",
-    sman1campaka: "sman1campaka.jpg",
-    sman1cibatu: "sman1cibatu.jpg",
-    sman1darangdan: "sman1darangdan.jpg",
-    sman1maniis: "sman1maniis.jpg",
+    manpurwakarta: "MAN Purwakarta.jpg",
+    smafullday: "SMA Fullday.jpg",
+    smapgri1purwakarta: "SMA PGRI 1 Purwakarta.jpg",
+    sman1bungursari: "SMAN 1 Bungursari.jpg",
+    sman1campaka: "SMAN 1 Campaka.jpg",
+    sman1cibatu: "SMAN 1 Cibatu.jpg",
+    sman1darangdan: "SMAN 1 Darangdan.jpg",
+    sman1maniis: "SMAN 1 Maniis.jpg",
     // ⬅️ FIX: sebelumnya key-nya "sman1pesawahan" (typo), padahal nama
-    // resmi di database adalah "SMAN 1 Pasawahan" -> normalize jadi
-    // "sman1pasawahan". Karena typo ini, logo sekolah ini SELALU gagal
-    // match dan jatuh ke default-club.png. Sudah diperbaiki di sini.
-    sman1pasawahan: "sman1pasawahan.jpg",
-    sman1plered: "sman1plered.jpg",
-    sman1purwakarta: "sman1purwakarta.jpg",
-    sman1sukatani: "sman1sukatani.jpg",
-    sman1tegalwaru: "sman1tegalwaru.jpg",
-    sman1wanayasa: "sman1wanayasa.jpg",
-    sman2purwakarta: "sman2purwakarta.jpg",
-    sman3purwakarta: "sman3purwakarta.jpg",
-    smanbabakancikao: "smanbabakancikao.jpg",
-    smasalmuhajirin: "smasalmuhajirin.jpg",
+    // resmi di database & file aslinya adalah "SMAN 1 Pasawahan"
+    // -> normalize jadi "sman1pasawahan". Sudah diperbaiki di sini.
+    sman1pasawahan: "SMAN 1 Pasawahan.jpg",
+    sman1plered: "SMAN 1 Plered.jpg",
+    sman1purwakarta: "SMAN 1 Purwakarta.jpg",
+    sman1sukatani: "SMAN 1 Sukatani.jpg",
+    sman1tegalwaru: "SMAN 1 Tegalwaru.jpg",
+    sman1wanayasa: "SMAN 1 Wanayasa.jpg",
+    sman2purwakarta: "SMAN 2 Purwakarta.jpg",
+    sman3purwakarta: "SMAN 3 Purwakarta.jpg",
+    smanbabakancikao: "SMAN Babakancikao.jpg",
+    smasalmuhajirin: "SMAS Al Muhajirin.jpg",
   };
 
   // ⬇️ Pengecualian: nama sekolah yang setelah dinormalisasi TIDAK persis
@@ -105,12 +108,18 @@ const SportPageExternal = () => {
     const key = normalize(schoolName);
     const availableKeys = Object.keys(SCHOOL_LOGO_FILES);
 
+    // ⬇️ Nama file asli mengandung spasi ("SMAN 1 Bungursari.jpg"), jadi
+    // WAJIB di-encode dulu sebelum dipasang sebagai src <img>, kalau tidak
+    // browser akan gagal load (gejalanya terlihat seperti "logo tidak
+    // muncul" padahal file-nya sebenarnya ada di folder).
+    const buildUrl = (fileName) => `/logosma/${encodeURIComponent(fileName)}`;
+
     if (SCHOOL_LOGO_OVERRIDES[key]) {
       const overrideKey = SCHOOL_LOGO_OVERRIDES[key];
-      return `/logosma/${SCHOOL_LOGO_FILES[overrideKey]}`;
+      return buildUrl(SCHOOL_LOGO_FILES[overrideKey]);
     }
     if (SCHOOL_LOGO_FILES[key]) {
-      return `/logosma/${SCHOOL_LOGO_FILES[key]}`;
+      return buildUrl(SCHOOL_LOGO_FILES[key]);
     }
 
     // Coba pencocokan sebagian (jaga-jaga kalau nama dari API sedikit beda)
@@ -118,7 +127,7 @@ const SportPageExternal = () => {
       (fileKey) => key.includes(fileKey) || fileKey.includes(key)
     );
     if (partialMatch) {
-      return `/logosma/${SCHOOL_LOGO_FILES[partialMatch]}`;
+      return buildUrl(SCHOOL_LOGO_FILES[partialMatch]);
     }
 
     return "/logos/default-club.png";

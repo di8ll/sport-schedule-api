@@ -58,7 +58,7 @@ const SportPageExternal = () => {
   // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma,
   // LENGKAP dengan ekstensi aslinya (sebagian besar .jpg, "smapgri1pwk" pakai .jpeg).
   const SCHOOL_LOGO_FILES = {
-    manpurwakarta: "manpurwakarta.jpg",
+    manpurwakarta: "manpurwakarta.jpeg",
     sman1bungursari: "sman1bungursari.jpg",
     sman1cempaka: "sman1cempaka.jpg",
     sman1pesawahan: "sman1pesawahan.jpg",

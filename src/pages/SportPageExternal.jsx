@@ -457,13 +457,13 @@ const SportPageExternal = () => {
 
                         <div className="w-full flex items-center justify-between gap-1 sm:gap-1.5">
                           <div className="w-[38%] flex flex-col items-center text-center">
-                            <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
-                              <img
+                            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
+                            <img
                                 src={getSchoolLogoFileName(match.teamA)}
                                 alt={match.teamA}
                                 className="w-full h-full object-contain p-1 sm:p-1.5"
                                 onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
-                              />
+                            />
                             </div>
                             <span className="font-extrabold text-slate-800 text-[10px] sm:text-xs tracking-wide uppercase line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem] flex items-center justify-center">
                               {match.teamA}

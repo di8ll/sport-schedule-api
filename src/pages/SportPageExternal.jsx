@@ -91,7 +91,7 @@ const SportPageExternal = () => {
 
       const normalizedCategory = normalize(baseCategory);
 
-      const res = await api.get(`/external`, { params: {} });
+      const res = await api.get(`/external/matches`, { params: {} });
 
       if (res.data && res.data.length > 0) {
             const rawData = res.data.map((m) => ({

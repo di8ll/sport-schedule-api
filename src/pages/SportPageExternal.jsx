@@ -55,22 +55,22 @@ const SportPageExternal = () => {
     return str.toLowerCase().replace(/[_\-\s]+/g, "");
   };
 
-  // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma
-  // (sesuai isi folder logosma di project kamu).
-  const SCHOOL_LOGO_FILES = [
-    "manpurwakarta",
-    "sman1bungursari",
-    "sman1cempaka",
-    "sman1pesawahan",
-    "sman1purwakarta",
-    "sman1sukatani",
-    "sman2purwakarta",
-    "sman3purwakarta",
-    "smapgri1pwk",
-  ];
+  // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma,
+  // LENGKAP dengan ekstensi aslinya (sebagian besar .jpg, "smapgri1pwk" pakai .jpeg).
+  const SCHOOL_LOGO_FILES = {
+    manpurwakarta: "manpurwakarta.jpg",
+    sman1bungursari: "sman1bungursari.jpg",
+    sman1cempaka: "sman1cempaka.jpg",
+    sman1pesawahan: "sman1pesawahan.jpg",
+    sman1purwakarta: "sman1purwakarta.jpg",
+    sman1sukatani: "sman1sukatani.jpg",
+    sman2purwakarta: "sman2purwakarta.jpg",
+    sman3purwakarta: "sman3purwakarta.jpg",
+    smapgri1pwk: "smapgri1pwk.jpeg",
+  };
 
   // ⬇️ Pengecualian: nama sekolah yang setelah dinormalisasi TIDAK persis
-  // sama dengan nama file logo-nya (misal karena pakai singkatan "pwk").
+  // sama dengan key di SCHOOL_LOGO_FILES (misal karena pakai singkatan "pwk").
   // Tambahkan baris baru di sini kalau nanti ada sekolah lain yang
   // nama filenya nggak match otomatis.
   const SCHOOL_LOGO_OVERRIDES = {
@@ -78,25 +78,27 @@ const SportPageExternal = () => {
     smapgripurwakarta: "smapgri1pwk",
   };
 
-  // Fungsi Helper: cocokkan NAMA SEKOLAH (dari API) -> NAMA FILE LOGO di /public/logosma
+  // Fungsi Helper: cocokkan NAMA SEKOLAH (dari API) -> FILE LOGO di /public/logosma
   const getSchoolLogoFileName = (schoolName) => {
     if (!schoolName) return "/logos/default-club.png";
 
     const key = normalize(schoolName);
+    const availableKeys = Object.keys(SCHOOL_LOGO_FILES);
 
     if (SCHOOL_LOGO_OVERRIDES[key]) {
-      return `/logosma/${SCHOOL_LOGO_OVERRIDES[key]}.png`;
+      const overrideKey = SCHOOL_LOGO_OVERRIDES[key];
+      return `/logosma/${SCHOOL_LOGO_FILES[overrideKey]}`;
     }
-    if (SCHOOL_LOGO_FILES.includes(key)) {
-      return `/logosma/${key}.png`;
+    if (SCHOOL_LOGO_FILES[key]) {
+      return `/logosma/${SCHOOL_LOGO_FILES[key]}`;
     }
 
     // Coba pencocokan sebagian (jaga-jaga kalau nama dari API sedikit beda)
-    const partialMatch = SCHOOL_LOGO_FILES.find(
-      (file) => key.includes(file) || file.includes(key)
+    const partialMatch = availableKeys.find(
+      (fileKey) => key.includes(fileKey) || fileKey.includes(key)
     );
     if (partialMatch) {
-      return `/logosma/${partialMatch}.png`;
+      return `/logosma/${SCHOOL_LOGO_FILES[partialMatch]}`;
     }
 
     return "/logos/default-club.png";

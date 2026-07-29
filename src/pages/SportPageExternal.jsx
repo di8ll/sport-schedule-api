@@ -702,7 +702,7 @@ const SportPageExternal = () => {
 
               <div>
                 <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
-                  👥 Daftar Starting Line Up
+                  👥 Daftar Pemain
                 </h4>
 
                 {loadingPlayers ? (
@@ -711,9 +711,15 @@ const SportPageExternal = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
+                    {/* ================= TIM A ================= */}
                     <div className="bg-white border border-slate-200 rounded-xl p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
                         {selectedMatch.teamA}
+                      </p>
+
+                      {/* ⬇️ STARTING LINE-UP: pemain yang DICENTANG pelatih di admin (selectedPlayerIds) */}
+                      <p className="text-[9px] font-black uppercase tracking-widest text-teal-600 mb-1">
+                        ⭐ Starting Line-Up
                       </p>
                       {teamAPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
                         <ul className="space-y-1.5">
@@ -731,11 +737,38 @@ const SportPageExternal = () => {
                       ) : (
                         <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
                       )}
+
+                      {/* ⬇️ CADANGAN: pemain yang TIDAK dicentang pelatih (sisa dari selectedPlayerIds) */}
+                      {teamAPlayers.filter((p) => !selectedPlayerIds.includes(p.id)).length > 0 && (
+                        <>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-3 mb-1 pt-2 border-t border-slate-100">
+                            🪑 Cadangan
+                          </p>
+                          <ul className="space-y-1.5">
+                            {teamAPlayers
+                              .filter((p) => !selectedPlayerIds.includes(p.id))
+                              .map((p) => (
+                                <li key={p.id} className="flex items-center justify-between gap-2 text-[11px] opacity-60">
+                                  <span className="flex items-center gap-1.5 min-w-0">
+                                    <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
+                                    <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                                  </span>
+                                </li>
+                              ))}
+                          </ul>
+                        </>
+                      )}
                     </div>
 
+                    {/* ================= TIM B ================= */}
                     <div className="bg-white border border-slate-200 rounded-xl p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
                         {selectedMatch.teamB}
+                      </p>
+
+                      {/* ⬇️ STARTING LINE-UP: pemain yang DICENTANG pelatih di admin (selectedPlayerIds) */}
+                      <p className="text-[9px] font-black uppercase tracking-widest text-teal-600 mb-1">
+                        ⭐ Starting Line-Up
                       </p>
                       {teamBPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
                         <ul className="space-y-1.5">
@@ -752,6 +785,27 @@ const SportPageExternal = () => {
                         </ul>
                       ) : (
                         <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
+                      )}
+
+                      {/* ⬇️ CADANGAN: pemain yang TIDAK dicentang pelatih (sisa dari selectedPlayerIds) */}
+                      {teamBPlayers.filter((p) => !selectedPlayerIds.includes(p.id)).length > 0 && (
+                        <>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-3 mb-1 pt-2 border-t border-slate-100">
+                            🪑 Cadangan
+                          </p>
+                          <ul className="space-y-1.5">
+                            {teamBPlayers
+                              .filter((p) => !selectedPlayerIds.includes(p.id))
+                              .map((p) => (
+                                <li key={p.id} className="flex items-center justify-between gap-2 text-[11px] opacity-60">
+                                  <span className="flex items-center gap-1.5 min-w-0">
+                                    <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
+                                    <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                                  </span>
+                                </li>
+                              ))}
+                          </ul>
+                        </>
                       )}
                     </div>
                   </div>

@@ -486,11 +486,11 @@ const SportPageExternal = () => {
 
                         <div className="w-full flex items-center justify-between gap-1 sm:gap-1.5">
                           <div className="w-[38%] flex flex-col items-center text-center">
-                            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
+                            <div className="w-20 h-20 sm:w-28 sm:h-28 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                             <img
                                 src={getSchoolLogoFileName(match.teamA)}
                                 alt={match.teamA}
-                                className="w-full h-full object-contain p-1 sm:p-1.5"
+                                className="w-full h-full object-contain p-0.5 sm:p-1"
                                 onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
                             />
                             </div>
@@ -524,11 +524,11 @@ const SportPageExternal = () => {
                           </div>
 
                           <div className="w-[38%] flex flex-col items-center text-center">
-                            <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
+                            <div className="w-20 h-20 sm:w-28 sm:h-28 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                               <img
                                 src={getSchoolLogoFileName(match.teamB)}
                                 alt={match.teamB}
-                                className="w-full h-full object-contain p-1 sm:p-1.5"
+                                className="w-full h-full object-contain p-0.5 sm:p-1"
                                 onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
                               />
                             </div>

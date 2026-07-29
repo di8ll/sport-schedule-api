@@ -457,7 +457,7 @@ const SportPageExternal = () => {
 
                         <div className="w-full flex items-center justify-between gap-1 sm:gap-1.5">
                           <div className="w-[38%] flex flex-col items-center text-center">
-                            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
+                            <div className="w-28 h-28 sm:w-36 sm:h-36 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                             <img
                                 src={getSchoolLogoFileName(match.teamA)}
                                 alt={match.teamA}

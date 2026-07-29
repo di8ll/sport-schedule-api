@@ -56,26 +56,46 @@ const SportPageExternal = () => {
   };
 
   // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma,
-  // LENGKAP dengan ekstensi aslinya (sebagian besar .jpg, "smapgri1pwk" pakai .jpeg).
+  // LENGKAP dengan ekstensi aslinya.
+  // ⚠️ CATATAN: 18 sekolah di bawah ini sudah disamakan dengan data terbaru
+  // di database (lihat query "external_school"). Untuk sekolah yang baru
+  // ditambahkan (belum ada di versi sebelumnya), ekstensi diasumsikan ".jpg"
+  // mengikuti mayoritas file yang sudah ada — kalau ternyata ekstensi
+  // aslinya beda (mis. .png/.webp), tinggal ganti di baris terkait saja.
   const SCHOOL_LOGO_FILES = {
     manpurwakarta: "manpurwakarta.jpeg",
+    smafullday: "smafullday.jpg",
+    smapgri1purwakarta: "smapgri1pwk.jpeg",
     sman1bungursari: "sman1bungursari.jpg",
-    sman1cempaka: "sman1cempaka.jpg",
-    sman1pesawahan: "sman1pesawahan.jpg",
+    sman1campaka: "sman1campaka.jpg",
+    sman1cibatu: "sman1cibatu.jpg",
+    sman1darangdan: "sman1darangdan.jpg",
+    sman1maniis: "sman1maniis.jpg",
+    // ⬅️ FIX: sebelumnya key-nya "sman1pesawahan" (typo), padahal nama
+    // resmi di database adalah "SMAN 1 Pasawahan" -> normalize jadi
+    // "sman1pasawahan". Karena typo ini, logo sekolah ini SELALU gagal
+    // match dan jatuh ke default-club.png. Sudah diperbaiki di sini.
+    sman1pasawahan: "sman1pasawahan.jpg",
+    sman1plered: "sman1plered.jpg",
     sman1purwakarta: "sman1purwakarta.jpg",
     sman1sukatani: "sman1sukatani.jpg",
+    sman1tegalwaru: "sman1tegalwaru.jpg",
+    sman1wanayasa: "sman1wanayasa.jpg",
     sman2purwakarta: "sman2purwakarta.jpg",
     sman3purwakarta: "sman3purwakarta.jpg",
-    smapgri1pwk: "smapgri1pwk.jpeg",
+    smanbabakancikao: "smanbabakancikao.jpg",
+    smasalmuhajirin: "smasalmuhajirin.jpg",
   };
 
   // ⬇️ Pengecualian: nama sekolah yang setelah dinormalisasi TIDAK persis
-  // sama dengan key di SCHOOL_LOGO_FILES (misal karena pakai singkatan "pwk").
+  // sama dengan key di SCHOOL_LOGO_FILES (misal karena pakai singkatan "pwk"
+  // atau penulisan kode yang beda dari nama lengkapnya).
   // Tambahkan baris baru di sini kalau nanti ada sekolah lain yang
-  // nama filenya nggak match otomatis.
+  // nama/kode-nya nggak match otomatis.
   const SCHOOL_LOGO_OVERRIDES = {
-    smapgri1purwakarta: "smapgri1pwk",
-    smapgripurwakarta: "smapgri1pwk",
+    smapgripurwakarta: "smapgri1purwakarta", // jaga-jaga kalau API kirim tanpa angka "1"
+    smapgri1pwk: "smapgri1purwakarta",
+    smapgripwk: "smapgri1purwakarta",
   };
 
   // Fungsi Helper: cocokkan NAMA SEKOLAH (dari API) -> FILE LOGO di /public/logosma

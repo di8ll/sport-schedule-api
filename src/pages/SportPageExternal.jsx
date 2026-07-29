@@ -50,34 +50,56 @@ const SportPageExternal = () => {
   const isDetailModalEnabled = DETAIL_MODAL_ENABLED_CATEGORIES.includes(category);
   const liveStreamEmbedUrl = LIVE_STREAM_EMBED_URLS[category];
 
-  const getLogoFileName = (teamCode) => {
-    if (!teamCode) return "default-club.png";
-    const code = teamCode.toUpperCase().trim();
-
-    switch (code) {
-      case "HO":
-        return "ho.png";
-      case "IPCI":
-        return "ipci.png";
-      case "IRT":
-        return "irt.png";
-      case "SPG":
-      case "SPINNING":
-        return "spinning.png";
-      case "WVG":
-      case "WEAVING":
-        return "weaving.png";
-      case "POLY":
-      case "POLYESTER":
-        return "polyester.png";
-      default:
-        return `${code.toLowerCase().replace(/\s+/g, "")}.png`;
-    }
-  };
-
   const normalize = (str) => {
     if (!str) return "";
     return str.toLowerCase().replace(/[_\-\s]+/g, "");
+  };
+
+  // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma
+  // (sesuai isi folder logosma di project kamu).
+  const SCHOOL_LOGO_FILES = [
+    "manpurwakarta",
+    "sman1bungursari",
+    "sman1cempaka",
+    "sman1pesawahan",
+    "sman1purwakarta",
+    "sman1sukatani",
+    "sman2purwakarta",
+    "sman3purwakarta",
+    "smapgri1pwk",
+  ];
+
+  // ⬇️ Pengecualian: nama sekolah yang setelah dinormalisasi TIDAK persis
+  // sama dengan nama file logo-nya (misal karena pakai singkatan "pwk").
+  // Tambahkan baris baru di sini kalau nanti ada sekolah lain yang
+  // nama filenya nggak match otomatis.
+  const SCHOOL_LOGO_OVERRIDES = {
+    smapgri1purwakarta: "smapgri1pwk",
+    smapgripurwakarta: "smapgri1pwk",
+  };
+
+  // Fungsi Helper: cocokkan NAMA SEKOLAH (dari API) -> NAMA FILE LOGO di /public/logosma
+  const getSchoolLogoFileName = (schoolName) => {
+    if (!schoolName) return "/logos/default-club.png";
+
+    const key = normalize(schoolName);
+
+    if (SCHOOL_LOGO_OVERRIDES[key]) {
+      return `/logosma/${SCHOOL_LOGO_OVERRIDES[key]}.png`;
+    }
+    if (SCHOOL_LOGO_FILES.includes(key)) {
+      return `/logosma/${key}.png`;
+    }
+
+    // Coba pencocokan sebagian (jaga-jaga kalau nama dari API sedikit beda)
+    const partialMatch = SCHOOL_LOGO_FILES.find(
+      (file) => key.includes(file) || file.includes(key)
+    );
+    if (partialMatch) {
+      return `/logosma/${partialMatch}.png`;
+    }
+
+    return "/logos/default-club.png";
   };
 
   const formatTime = (timeStr) => {
@@ -435,7 +457,7 @@ const SportPageExternal = () => {
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                               <img
-                                src={`/logos/${getLogoFileName(match.teamA)}`}
+                                src={getSchoolLogoFileName(match.teamA)}
                                 alt={match.teamA}
                                 className="w-full h-full object-contain p-1 sm:p-1.5"
                                 onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
@@ -473,7 +495,7 @@ const SportPageExternal = () => {
                           <div className="w-[38%] flex flex-col items-center text-center">
                             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-white border-2 border-slate-300 rounded-full flex items-center justify-center mb-1.5 sm:mb-2 shadow-sm overflow-hidden shrink-0">
                               <img
-                                src={`/logos/${getLogoFileName(match.teamB)}`}
+                                src={getSchoolLogoFileName(match.teamB)}
                                 alt={match.teamB}
                                 className="w-full h-full object-contain p-1 sm:p-1.5"
                                 onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
@@ -605,7 +627,7 @@ const SportPageExternal = () => {
                 <div className="w-[35%] flex flex-col items-center text-center">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
                     <img
-                      src={`/logos/${getLogoFileName(selectedMatch.teamA)}`}
+                      src={getSchoolLogoFileName(selectedMatch.teamA)}
                       alt={selectedMatch.teamA}
                       className="w-full h-full object-contain p-1"
                       onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}
@@ -637,7 +659,7 @@ const SportPageExternal = () => {
                 <div className="w-[35%] flex flex-col items-center text-center">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center mb-1 shadow-sm overflow-hidden">
                     <img
-                      src={`/logos/${getLogoFileName(selectedMatch.teamB)}`}
+                      src={getSchoolLogoFileName(selectedMatch.teamB)}
                       alt={selectedMatch.teamB}
                       className="w-full h-full object-contain p-1"
                       onError={(e) => { e.currentTarget.src = '/logos/default-club.png'; }}

@@ -76,8 +76,8 @@ const timelineEvents = [
     id: 5,
     start: new Date("2026-07-17T00:00:00"),
     end: new Date("2026-07-17T23:59:59"),
-    label: "17 Jul 2026",
     title: "Grand Final & Closing Ceremony",
+    label: "17 Jul 2026",
     desc: "Puncak perayaan Indorama Founder's Day: partai final, pengumuman juara umum, dan penghargaan.",
     icon: "🎉",
   },
@@ -248,9 +248,18 @@ function TimelineSection() {
 const HomePage = () => {
   const navigate = useNavigate();
 
-  // 1. Inisialisasi state dengan mengambil dari localStorage
+  // 1. Inisialisasi state dengan mengambil dari localStorage.
+  // ✅ FIX: default sekarang "external", bukan "internal".
+  // Sebelumnya tombol "Internal" sudah dihapus dari UI (di-comment),
+  // hanya tersisa tombol "External". Tapi state awal masih fallback ke
+  // "internal", sehingga user baru (yang belum ada localStorage-nya)
+  // melihat daftar kategori INTERNAL (Futsal, Volley, Catur, dst) di
+  // homepage, padahal tombol yang ada cuma "External". User jadi harus
+  // klik tombol "External" dulu secara manual supaya kategori yang benar
+  // (Volly, Basket) muncul. Dengan default "external", first-time visitor
+  // langsung melihat kategori yang benar tanpa perlu klik apa pun.
   const [activeGroup, setActiveGroup] = useState(() => {
-    return localStorage.getItem("selectedGroup") || "internal";
+    return localStorage.getItem("selectedGroup") || "external";
   });
 
   // 2. Simpan ke localStorage setiap kali activeGroup berubah
@@ -261,7 +270,7 @@ const HomePage = () => {
   // Tanggal target countdown mengikuti grup yang aktif
   const eventTarget =
     activeGroup === "internal" ? EVENT_DATE_INTERNAL : EVENT_DATE_EXTERNAL;
-  
+
   const [timeLeft, setTimeLeft] = useState(getTimeLeft(eventTarget));
   const [isStandingsOpen, setIsStandingsOpen] = useState(false);
   const [standingsData, setStandingsData] = useState([]);
@@ -328,7 +337,7 @@ const HomePage = () => {
           alt="Indorama"
           className="w-28 sm:w-40 drop-shadow-md block"
         />
-        
+
         {/* LOGO POHON */}
         <img
           src="/pohon.png"
@@ -412,7 +421,6 @@ const HomePage = () => {
         }}
       >
 
-        
         <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-[#00308F]/15 via-transparent to-transparent blur-3xl pointer-events-none" />
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#ED1C24]/10 via-transparent to-transparent blur-3xl pointer-events-none" />
 

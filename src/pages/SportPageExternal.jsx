@@ -36,6 +36,25 @@ const LIVE_STREAM_EMBED_URLS = {
   // volly: "https://www.youtube.com/embed/XXXXXXXXXXX",
 };
 
+// ⬇️ FIX BUG: kenapa data "volly" selalu kosong padahal "basket" ada?
+// Karena slug/key kategori di sportsData.js (dan URL) pakai ejaan
+// "volly" (tanpa huruf "e"), TAPI field `sport_type` yang dikirim API
+// external ternyata pakai ejaan "volley" (dengan huruf "e"), contoh:
+// "volley_putra". Akibatnya waktu di-normalize dan dicocokkan
+// (`"volleyputra".includes("volly")`) hasilnya SELALU false, karena
+// "volly" bukan substring dari "volley" (beda satu huruf: e vs y).
+// Basket kebetulan cocok karena penulisannya sama persis
+// ("basket" ada di dalam "basket_putra").
+//
+// Solusi: map slug kategori dari URL/theme ke ejaan asli yang dipakai
+// API SEBELUM di-normalize, supaya nggak perlu ubah key di
+// sportsData.js (biar URL/routing "volly" tetap sama seperti sekarang).
+// Kalau nanti ada kategori lain yang penulisannya beda juga antara
+// slug vs API, tinggal tambahkan barisnya di sini.
+const CATEGORY_API_ALIASES = {
+  volly: "volley", // slug URL "volly" -> ejaan asli di API "volley"
+};
+
 const SportPageExternal = () => {
   const { category } = useParams();
   const navigate = useNavigate();
@@ -151,8 +170,17 @@ const SportPageExternal = () => {
   // ⬇️ PERBEDAAN UTAMA #1: fetch ke endpoint EXTERNAL, bukan /matches biasa
   const loadMatch = async () => {
     try {
-      let baseCategory = category
-        ? category.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+      // ⬇️ FIX: pakai alias dulu (kalau ada) sebelum di-capitalize & di-normalize,
+      // supaya slug URL "volly" dicocokkan sebagai "volley" (ejaan asli API),
+      // bukan dicocokkan mentah-mentah sebagai "volly" yang tidak akan pernah
+      // ketemu di dalam string "volley_putra" / "volley_putri".
+      const categorySourceForMatching = CATEGORY_API_ALIASES[category] || category;
+
+      let baseCategory = categorySourceForMatching
+        ? categorySourceForMatching
+            .split("-")
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(" ")
         : "";
 
       const normalizedCategory = normalize(baseCategory);

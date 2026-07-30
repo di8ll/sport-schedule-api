@@ -71,6 +71,7 @@ const SportPageExternal = () => {
   const [teamBPlayers, setTeamBPlayers] = useState([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
+  const [playersError, setPlayersError] = useState("");
 
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -170,52 +171,48 @@ const SportPageExternal = () => {
   // ⬇️ PERBEDAAN UTAMA #1: fetch ke endpoint EXTERNAL, bukan /matches biasa
   const loadMatch = async () => {
     try {
-      // ⬇️ FIX: pakai alias dulu (kalau ada) sebelum di-capitalize & di-normalize,
-      // supaya slug URL "volly" dicocokkan sebagai "volley" (ejaan asli API),
-      // bukan dicocokkan mentah-mentah sebagai "volly" yang tidak akan pernah
-      // ketemu di dalam string "volley_putra" / "volley_putri".
+      // Slug URL "volly" dicocokkan ke "volley" sesuai sport_type API.
       const categorySourceForMatching = CATEGORY_API_ALIASES[category] || category;
+      const normalizedCategory = normalize(categorySourceForMatching);
 
-      let baseCategory = categorySourceForMatching
-        ? categorySourceForMatching
-            .split("-")
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" ")
-        : "";
+      const response = await api.get("/external/matches");
 
-      const normalizedCategory = normalize(baseCategory);
+      // Mendukung response langsung berupa array maupun { status, data: [] }.
+      const responseMatches = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
 
-      const res = await api.get(`/external/matches`, { params: {} });
+      const mappedMatches = responseMatches.map((match) => ({
+        id: match.id,
+        date: match.match_date ?? "",
+        time: match.match_time ?? "",
+        stage: match.stage || "Babak Penyisihan",
+        sportType: match.sport_type ?? "",
+        teamA: match.school_a?.name ?? match.school_a?.code ?? "Unknown Team",
+        teamB: match.school_b?.name ?? match.school_b?.code ?? "Unknown Team",
+        teamACode: match.school_a?.code ?? "",
+        teamBCode: match.school_b?.code ?? "",
+        teamAId: match.school_a?.id ?? match.school_a_id ?? null,
+        teamBId: match.school_b?.id ?? match.school_b_id ?? null,
+        scoreA: Number(match.score_a ?? 0),
+        scoreB: Number(match.score_b ?? 0),
+        venue: match.venue || "Lokasi belum tersedia",
+        status: String(match.status ?? "").toUpperCase().trim(),
+      }));
 
-      if (res.data && res.data.length > 0) {
-        const rawData = res.data.map((m) => ({
-          id: m.id,
-          date: m.match_date,
-          time: m.match_time,
-          stage: m.stage || "Babak Penyisihan",
-          sportType: m.sport_type,
-          teamA: m.school_a?.name ?? m.school_a?.code ?? "Unknown Team",
-          teamB: m.school_b?.name ?? m.school_b?.code ?? "Unknown Team",
-          teamACode: m.school_a?.code ?? "",
-          teamBCode: m.school_b?.code ?? "",
-          teamAId: m.school_a?.id ?? m.school_a_id ?? null,
-          teamBId: m.school_b?.id ?? m.school_b_id ?? null,
-          scoreA: m.score_a ?? 0,
-          scoreB: m.score_b ?? 0,
-          venue: m.venue,
-          status: m.status,
-        }));
+      const finalData = mappedMatches.filter((match) =>
+        normalize(match.sportType).includes(normalizedCategory)
+      );
 
-        const finalData = rawData.filter((m) =>
-          normalize(m.sportType).includes(normalizedCategory)
-        );
+      console.log("External matches response:", response.data);
+      console.log("External matches setelah filter:", finalData);
 
-        setMatches(finalData);
-        return;
-      }
-      setMatches([]);
+      setMatches(finalData);
     } catch (err) {
-      console.warn("Gagal mengambil data external dari API:", err.message);
+      console.error("Gagal mengambil data external dari API:", err);
+      console.error("Response error:", err.response?.data);
       setMatches([]);
     } finally {
       setLoading(false);
@@ -245,8 +242,8 @@ const SportPageExternal = () => {
 
   const theme = sportTheme[category] || sportTheme.volly;
 
-  const filteredMatches = matches.filter((m) => {
-    const status = m.status?.toUpperCase().trim();
+  const filteredMatches = matches.filter((match) => {
+    const status = String(match.status ?? "").toUpperCase().trim();
     if (activeTab === "hasil") return status === "FINISHED";
     if (activeTab === "live") return status === "LIVE";
     if (activeTab === "jadwal") return status === "UPCOMING";
@@ -271,37 +268,84 @@ const SportPageExternal = () => {
 
   // ⬇️ PERBEDAAN UTAMA #2: fetch roster pemain ke endpoint EXTERNAL
   useEffect(() => {
-    if (!selectedMatch) {
+    if (!selectedMatchId) {
       setTeamAPlayers([]);
       setTeamBPlayers([]);
       setSelectedPlayerIds([]);
+      setPlayersError("");
       return;
     }
 
+    let isMounted = true;
+
     const loadPlayers = async () => {
       setLoadingPlayers(true);
-      try {
-        const response = await api.get(`/external/matches/${selectedMatchId}/players`);
-        const result = response.data.data;
+      setPlayersError("");
 
-        // ✅ FIX: API external ternyata pakai key "club_a" / "club_b"
-        // (lihat response asli endpoint /external/matches/{id}/players),
-        // BUKAN "school_a" / "school_b" seperti versi sebelumnya.
-        // Itu sebabnya roster/starting line-up selalu kosong di modal.
-        setTeamAPlayers(result.club_a?.players || []);
-        setTeamBPlayers(result.club_b?.players || []);
-        setSelectedPlayerIds(result.selected_ids || []);
+      try {
+        const response = await api.get(
+          `/external/matches/${selectedMatchId}/players`
+        );
+
+        // Mendukung response { status, data: {...} } maupun object langsung.
+        const result = response.data?.data ?? response.data;
+
+        if (!result || typeof result !== "object") {
+          throw new Error("Format response pemain tidak valid");
+        }
+
+        const clubAPlayers = Array.isArray(result.club_a?.players)
+          ? result.club_a.players
+          : [];
+
+        const clubBPlayers = Array.isArray(result.club_b?.players)
+          ? result.club_b.players
+          : [];
+
+        const rawSelectedIds =
+          result.selected_ids ?? result.match?.selected_ids ?? [];
+
+        // Samakan tipe ID supaya 133 dan "133" dianggap sama.
+        const normalizedSelectedIds = Array.isArray(rawSelectedIds)
+          ? rawSelectedIds.map((id) => String(id)).filter(Boolean)
+          : [];
+
+        console.log("External players response:", response.data);
+        console.log("Club A players:", clubAPlayers);
+        console.log("Club B players:", clubBPlayers);
+        console.log("Selected player IDs:", normalizedSelectedIds);
+
+        if (!isMounted) return;
+
+        setTeamAPlayers(clubAPlayers);
+        setTeamBPlayers(clubBPlayers);
+        setSelectedPlayerIds(normalizedSelectedIds);
       } catch (err) {
-        console.warn("Gagal mengambil data roster pemain external:", err.message);
+        console.error("Gagal mengambil roster pemain external:", err);
+        console.error("Response error:", err.response?.data);
+
+        if (!isMounted) return;
+
         setTeamAPlayers([]);
         setTeamBPlayers([]);
         setSelectedPlayerIds([]);
+        setPlayersError(
+          err.response?.data?.message ||
+            err.message ||
+            "Data pemain gagal dimuat."
+        );
       } finally {
-        setLoadingPlayers(false);
+        if (isMounted) {
+          setLoadingPlayers(false);
+        }
       }
     };
 
     loadPlayers();
+
+    return () => {
+      isMounted = false;
+    };
   }, [selectedMatchId]);
 
   if (loading) {
@@ -747,51 +791,79 @@ const SportPageExternal = () => {
                 </h4>
 
                 {loadingPlayers ? (
-                  <div className="text-center py-6 text-xs text-slate-400 font-medium">
-                    Memuat data pemain...
+                  <div className="text-center py-6">
+                    <div className="w-7 h-7 mx-auto border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs text-slate-400 font-medium mt-2">
+                      Memuat data pemain...
+                    </p>
+                  </div>
+                ) : playersError ? (
+                  <div className="text-center py-5 px-4 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-xs font-bold text-red-600">
+                      Data pemain gagal dimuat
+                    </p>
+                    <p className="text-[10px] text-red-500 mt-1">
+                      {playersError}
+                    </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       { team: selectedMatch.teamA, players: teamAPlayers },
                       { team: selectedMatch.teamB, players: teamBPlayers },
                     ].map(({ team, players }, idx) => {
-                      const lineup = players.filter((p) => selectedPlayerIds.includes(p.id));
+                      const selectedPlayerIdSet = new Set(
+                        selectedPlayerIds.map((id) => String(id))
+                      );
+
+                      // Jika selected_ids kosong/tidak dikirim, tampilkan semua pemain.
+                      const lineup =
+                        selectedPlayerIdSet.size > 0
+                          ? players.filter((player) =>
+                              selectedPlayerIdSet.has(String(player.id))
+                            )
+                          : players;
+
                       return (
                         <div
-                          key={idx}
+                          key={`${team}-${idx}`}
                           className="bg-white border border-slate-200 rounded-xl overflow-hidden"
                         >
                           <div className="flex items-center justify-between gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100">
                             <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 truncate">
                               {team}
                             </p>
-                            {lineup.length > 0 && (
-                              <span className="text-[9px] font-bold text-teal-700 bg-teal-50 border border-teal-200 rounded-full px-1.5 py-0.5 shrink-0">
-                                {lineup.length}
-                              </span>
-                            )}
+                            <span className="text-[9px] font-bold text-teal-700 bg-teal-50 border border-teal-200 rounded-full px-1.5 py-0.5 shrink-0">
+                              {lineup.length} pemain
+                            </span>
                           </div>
 
                           {lineup.length > 0 ? (
                             <ul className="divide-y divide-slate-100">
-                              {lineup.map((p) => (
+                              {lineup.map((player) => (
                                 <li
-                                  key={p.id}
+                                  key={player.id}
                                   className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 transition-colors"
                                 >
-                                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
-                                    {p.jersey_number}
+                                  <span className="w-7 h-7 rounded-full bg-slate-900 text-white text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
+                                    {player.jersey_number ?? "-"}
                                   </span>
-                                  <span className="text-[11px] font-semibold text-slate-700 truncate">
-                                    {p.name}
-                                  </span>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-semibold text-slate-700 truncate">
+                                      {player.name || "Nama pemain"}
+                                    </p>
+                                    {player.position && (
+                                      <p className="text-[9px] text-slate-400 truncate">
+                                        {player.position}
+                                      </p>
+                                    )}
+                                  </div>
                                 </li>
                               ))}
                             </ul>
                           ) : (
-                            <p className="text-[10px] text-slate-400 italic px-3 py-3">
-                              Belum ada pemain terpilih.
+                            <p className="text-[10px] text-slate-400 italic px-3 py-3 text-center">
+                              Belum ada data pemain untuk tim ini.
                             </p>
                           )}
                         </div>

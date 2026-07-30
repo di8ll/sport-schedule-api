@@ -7,26 +7,35 @@ import api from "../services/api";
 // ⬇️ File ini KHUSUS untuk cabang EXTERNAL (Antar Sekolah).
 // Dipisah dari SportPage.jsx (internal) supaya SportPage internal
 // TIDAK PERLU DIUBAH SAMA SEKALI, sesuai permintaan.
-//
-// Perbedaan utama dari SportPage internal:
-// 1. Fetch data pakai endpoint /external/matches & /external/matches/{id}/players
-// 2. Tema/kategori diambil dari cabang yang isExternal: true di sportsData.js (volly, basket)
-// 3. Key localStorage dibedakan (pakai prefix "external_") biar tidak bentrok
-//    dengan tab yang dipilih user di halaman internal.
 
-// ⬇️ Daftar cabang olahraga EXTERNAL yang boleh membuka modal detail
-// (live streaming + skor + roster pemain). Tambahkan slug-nya di sini
-// kalau ada cabang external lain yang mau dibuka detailnya juga.
 const DETAIL_MODAL_ENABLED_CATEGORIES = ["basket", "volly"];
 
-// ⬇️ Link live streaming YouTube per kategori.
-// Video HANYA muncul kalau status pertandingan == "LIVE".
-// Kalau kategori belum ada link-nya (misal "volly"), modal tetap kebuka
-// (skor + roster tetap tampil), cuma bagian video-nya nggak dirender.
+const SHOW_LIVE_STREAM = false;
+
 const LIVE_STREAM_EMBED_URLS = {
   basket: "https://www.youtube.com/embed/-P4c8E0P0cU?si=xOMZsvTm0AhSigD6",
-  // volly: "https://www.youtube.com/embed/XXXXXXXXXXX",
 };
+
+// ⬇️ Alias slug URL -> ejaan yang mungkin dipakai API.
+// Dibuat DUA ARAH (bukan cuma volly->volley) supaya walau nanti ejaan
+// di API atau di URL berubah, pencocokan tetap jalan tanpa perlu edit
+// lagi di banyak tempat.
+const CATEGORY_API_ALIASES = {
+  volly: "volley",
+};
+
+const STAGE_OPTIONS = [
+  { value: "semua", label: "Semua Babak" },
+  { value: "Penyisihan", label: "Penyisihan" },
+  { value: "Semifinal", label: "Semifinal" },
+  { value: "Final", label: "Final" },
+];
+
+const GENDER_OPTIONS = [
+  { value: "semua", label: "Semua" },
+  { value: "putra", label: "👨 Putra" },
+  { value: "putri", label: "👩 Putri" },
+];
 
 const SportPageExternal = () => {
   const { category } = useParams();
@@ -34,10 +43,22 @@ const SportPageExternal = () => {
 
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  // ⬇️ BARU: simpan pesan error supaya bisa ditampilkan ke user kalau
+  // fetch API gagal (misal CORS/network), bukan cuma disembunyikan
+  // jadi "data kosong" seperti sebelumnya — supaya lebih mudah didiagnosis.
+  const [fetchError, setFetchError] = useState(null);
 
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem(`external_activeTab_${category}`) || "jadwal";
   });
+
+  const [genderFilter, setGenderFilter] = useState(() => {
+    return localStorage.getItem(`external_genderFilter_${category}`) || "semua";
+  });
+  const [stageFilter, setStageFilter] = useState(() => {
+    return localStorage.getItem(`external_stageFilter_${category}`) || "semua";
+  });
+
   const [selectedMatchId, setSelectedMatchId] = useState(null);
 
   const [teamAPlayers, setTeamAPlayers] = useState([]);
@@ -48,24 +69,13 @@ const SportPageExternal = () => {
   const [currentPage, setCurrentPage] = useState(0);
 
   const isDetailModalEnabled = DETAIL_MODAL_ENABLED_CATEGORIES.includes(category);
-  const liveStreamEmbedUrl = LIVE_STREAM_EMBED_URLS[category];
+  const liveStreamEmbedUrl = SHOW_LIVE_STREAM ? LIVE_STREAM_EMBED_URLS[category] : undefined;
 
   const normalize = (str) => {
     if (!str) return "";
     return str.toLowerCase().replace(/[_\-\s]+/g, "");
   };
 
-  // ⬇️ Daftar nama file logo sekolah yang tersedia di /public/logosma.
-  // ⚠️ PENTING: nama file di folder logosma TERNYATA masih pakai SPASI
-  // dan HURUF KAPITAL asli (contoh: "SMAN 1 Bungursari.jpg"), BUKAN
-  // "sman1bungursari.jpg" seperti versi sebelumnya. Itu sebabnya logo
-  // tidak muncul (request ke gambar 404) — key di objek ini tetap
-  // dinormalisasi (lowercase, tanpa spasi) supaya gampang dicocokkan
-  // dengan nama dari API, tapi VALUE-nya sekarang persis sama dengan
-  // nama file asli di folder (lihat screenshot Windows Explorer). Saat
-  // dipakai sebagai src <img>, nama file ini di-encode dulu
-  // (encodeURIComponent) di getSchoolLogoFileName supaya spasinya tidak
-  // bikin browser gagal load.
   const SCHOOL_LOGO_FILES = {
     manpurwakarta: "MAN Purwakarta.jpg",
     smafullday: "SMA Fullday.jpg",
@@ -75,9 +85,6 @@ const SportPageExternal = () => {
     sman1cibatu: "SMAN 1 Cibatu.jpg",
     sman1darangdan: "SMAN 1 Darangdan.jpg",
     sman1maniis: "SMAN 1 Maniis.jpg",
-    // ⬅️ FIX: sebelumnya key-nya "sman1pesawahan" (typo), padahal nama
-    // resmi di database & file aslinya adalah "SMAN 1 Pasawahan"
-    // -> normalize jadi "sman1pasawahan". Sudah diperbaiki di sini.
     sman1pasawahan: "SMAN 1 Pasawahan.jpg",
     sman1plered: "SMAN 1 Plered.jpg",
     sman1purwakarta: "SMAN 1 Purwakarta.jpg",
@@ -90,28 +97,18 @@ const SportPageExternal = () => {
     smasalmuhajirin: "SMAS Al Muhajirin.jpg",
   };
 
-  // ⬇️ Pengecualian: nama sekolah yang setelah dinormalisasi TIDAK persis
-  // sama dengan key di SCHOOL_LOGO_FILES (misal karena pakai singkatan "pwk"
-  // atau penulisan kode yang beda dari nama lengkapnya).
-  // Tambahkan baris baru di sini kalau nanti ada sekolah lain yang
-  // nama/kode-nya nggak match otomatis.
   const SCHOOL_LOGO_OVERRIDES = {
-    smapgripurwakarta: "smapgri1purwakarta", // jaga-jaga kalau API kirim tanpa angka "1"
+    smapgripurwakarta: "smapgri1purwakarta",
     smapgri1pwk: "smapgri1purwakarta",
     smapgripwk: "smapgri1purwakarta",
   };
 
-  // Fungsi Helper: cocokkan NAMA SEKOLAH (dari API) -> FILE LOGO di /public/logosma
   const getSchoolLogoFileName = (schoolName) => {
     if (!schoolName) return "/logos/default-club.png";
 
     const key = normalize(schoolName);
     const availableKeys = Object.keys(SCHOOL_LOGO_FILES);
 
-    // ⬇️ Nama file asli mengandung spasi ("SMAN 1 Bungursari.jpg"), jadi
-    // WAJIB di-encode dulu sebelum dipasang sebagai src <img>, kalau tidak
-    // browser akan gagal load (gejalanya terlihat seperti "logo tidak
-    // muncul" padahal file-nya sebenarnya ada di folder).
     const buildUrl = (fileName) => `/logosma/${encodeURIComponent(fileName)}`;
 
     if (SCHOOL_LOGO_OVERRIDES[key]) {
@@ -122,7 +119,6 @@ const SportPageExternal = () => {
       return buildUrl(SCHOOL_LOGO_FILES[key]);
     }
 
-    // Coba pencocokan sebagian (jaga-jaga kalau nama dari API sedikit beda)
     const partialMatch = availableKeys.find(
       (fileKey) => key.includes(fileKey) || fileKey.includes(key)
     );
@@ -138,16 +134,36 @@ const SportPageExternal = () => {
     return timeStr.slice(0, 5);
   };
 
-  // ⬇️ PERBEDAAN UTAMA #1: fetch ke endpoint EXTERNAL, bukan /matches biasa
+  // ⬇️ FIX UTAMA: pencocokan kategori sekarang dicoba dari DUA sisi
+  // (slug asli & alias-nya), bukan cuma satu arah. Ini jaga-jaga kalau
+  // suatu saat sportsData.js pakai "volley" langsung (bukan "volly"),
+  // kode ini tetap jalan tanpa perlu diedit lagi.
+  const getCategoryCandidates = (cat) => {
+    if (!cat) return [];
+    const candidates = new Set([cat]);
+    if (CATEGORY_API_ALIASES[cat]) candidates.add(CATEGORY_API_ALIASES[cat]);
+    // cek juga arah sebaliknya: kalau "cat" adalah VALUE dari alias
+    Object.entries(CATEGORY_API_ALIASES).forEach(([slug, apiName]) => {
+      if (apiName === cat) candidates.add(slug);
+    });
+    return Array.from(candidates).map((c) => normalize(c));
+  };
+
   const loadMatch = async () => {
     try {
-      let baseCategory = category
-        ? category.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
-        : "";
-
-      const normalizedCategory = normalize(baseCategory);
+      const candidates = getCategoryCandidates(category);
 
       const res = await api.get(`/external/matches`, { params: {} });
+
+      // ⬇️ DEBUG LOG: buka Console browser (F12) untuk lihat ini.
+      // Kalau baris ini TIDAK PERNAH muncul di console saat buka
+      // halaman /sport/volly, berarti request gagal sebelum sampai
+      // sini (biasanya karena CORS) — cek tab Network untuk baris
+      // merah "external/matches".
+      console.log("[SportPageExternal] kategori:", category, "-> kandidat:", candidates);
+      console.log("[SportPageExternal] jumlah data mentah dari API:", res.data?.length ?? 0);
+
+      setFetchError(null);
 
       if (res.data && res.data.length > 0) {
         const rawData = res.data.map((m) => ({
@@ -168,16 +184,26 @@ const SportPageExternal = () => {
           status: m.status,
         }));
 
-        const finalData = rawData.filter((m) =>
-          normalize(m.sportType).includes(normalizedCategory)
-        );
+        const finalData = rawData.filter((m) => {
+          const normalizedSportType = normalize(m.sportType);
+          return candidates.some((c) => normalizedSportType.includes(c));
+        });
+
+        console.log(`[SportPageExternal] data setelah difilter kategori "${category}":`, finalData.length);
 
         setMatches(finalData);
         return;
       }
       setMatches([]);
     } catch (err) {
-      console.warn("Gagal mengambil data external dari API:", err.message);
+      // ⬇️ Sekarang errornya juga disimpan ke state supaya bisa
+      // ditampilkan ke user, bukan cuma hilang di console.
+      console.error("[SportPageExternal] Gagal mengambil data external dari API:", err);
+      setFetchError(
+        err.response
+          ? `Server merespons error ${err.response.status}.`
+          : "Tidak bisa terhubung ke server (kemungkinan masalah jaringan atau CORS)."
+      );
       setMatches([]);
     } finally {
       setLoading(false);
@@ -198,21 +224,46 @@ const SportPageExternal = () => {
   }, [activeTab, category]);
 
   useEffect(() => {
+    localStorage.setItem(`external_genderFilter_${category}`, genderFilter);
+  }, [genderFilter, category]);
+
+  useEffect(() => {
+    localStorage.setItem(`external_stageFilter_${category}`, stageFilter);
+  }, [stageFilter, category]);
+
+  useEffect(() => {
     setCurrentPage(0);
   }, [category]);
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [activeTab]);
+  }, [activeTab, genderFilter, stageFilter]);
 
   const theme = sportTheme[category] || sportTheme.volly;
 
   const filteredMatches = matches.filter((m) => {
     const status = m.status?.toUpperCase().trim();
-    if (activeTab === "hasil") return status === "FINISHED";
-    if (activeTab === "live") return status === "LIVE";
-    if (activeTab === "jadwal") return status === "UPCOMING";
-    return true;
+
+    const matchStatus =
+      activeTab === "hasil"
+        ? status === "FINISHED"
+        : activeTab === "live"
+        ? status === "LIVE"
+        : activeTab === "jadwal"
+        ? status === "UPCOMING"
+        : true;
+
+    const matchGender =
+      genderFilter === "semua"
+        ? true
+        : (m.sportType || "").toLowerCase().includes(genderFilter);
+
+    const matchStage =
+      stageFilter === "semua"
+        ? true
+        : (m.stage || "").toLowerCase() === stageFilter.toLowerCase();
+
+    return matchStatus && matchGender && matchStage;
   });
 
   const ITEMS_PER_PAGE = 3;
@@ -231,7 +282,6 @@ const SportPageExternal = () => {
     }
   };
 
-  // ⬇️ PERBEDAAN UTAMA #2: fetch roster pemain ke endpoint EXTERNAL
   useEffect(() => {
     if (!selectedMatch) {
       setTeamAPlayers([]);
@@ -246,9 +296,8 @@ const SportPageExternal = () => {
         const response = await api.get(`/external/matches/${selectedMatchId}/players`);
         const result = response.data.data;
 
-        // ⬅️ FIX: API external pakai key "school_a" / "school_b", bukan "club_a" / "club_b"
-        setTeamAPlayers(result.school_a?.players || []);
-        setTeamBPlayers(result.school_b?.players || []);
+        setTeamAPlayers(result.club_a?.players || []);
+        setTeamBPlayers(result.club_b?.players || []);
         setSelectedPlayerIds(result.selected_ids || []);
       } catch (err) {
         console.warn("Gagal mengambil data roster pemain external:", err.message);
@@ -385,10 +434,59 @@ const SportPageExternal = () => {
               })}
             </div>
           </div>
+
+          {/* ================= 2b. FILTER BAR: GENDER & BABAK ================= */}
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 py-2.5 sm:py-3 flex flex-col sm:flex-row gap-2 sm:gap-4 sm:items-center border-t border-slate-100">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-0.5">
+                Gender:
+              </span>
+              {GENDER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setGenderFilter(opt.value)}
+                  className={`text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border-2 transition-all ${
+                    genderFilter === opt.value
+                      ? "bg-[#008080] border-[#008080] text-white shadow-sm"
+                      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap sm:ml-auto">
+              <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-0.5">
+                Babak:
+              </span>
+              {STAGE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setStageFilter(opt.value)}
+                  className={`text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border-2 transition-all ${
+                    stageFilter === opt.value
+                      ? "bg-slate-900 border-slate-900 text-white shadow-sm"
+                      : "bg-white border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* ================= 3. DYNAMIC CONTENT & PAGINATION ================= */}
         <div className="max-w-7xl mx-auto p-3 sm:p-6 md:p-8 mt-3 sm:mt-4">
+          {/* ⬇️ BARU: banner error kalau fetch API gagal (CORS/network),
+              supaya tidak terlihat sama seperti "belum ada jadwal". */}
+          {fetchError && (
+            <div className="mb-4 p-3 sm:p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700 text-xs sm:text-sm font-semibold">
+              ⚠️ Gagal memuat data pertandingan: {fetchError} Coba refresh halaman, atau cek koneksi.
+            </div>
+          )}
+
           {filteredMatches.length > 0 ? (
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 border-b border-slate-200 pb-3">
@@ -587,13 +685,17 @@ const SportPageExternal = () => {
                     ? "Jadwal pertandingan mendatang belum tersedia."
                     : "Belum ada riwayat hasil pertandingan."}
               </p>
-              <p className="text-slate-400 text-[11px] mt-1">Coba lihat menu tab lainnya untuk info terbaru.</p>
+              <p className="text-slate-400 text-[11px] mt-1">
+                {genderFilter !== "semua" || stageFilter !== "semua"
+                  ? "Coba ubah filter Gender/Babak, atau lihat menu tab lainnya."
+                  : "Coba lihat menu tab lainnya untuk info terbaru."}
+              </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* ================= 4. DETAILED MODAL OVERLAY ================= */}
+      {/* ================= 4. DETAILED MODAL OVERLAY (tidak diubah) ================= */}
       {selectedMatch && (
         <div
           className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
@@ -621,9 +723,6 @@ const SportPageExternal = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-5 p-4 sm:p-5">
-              {/* ================= LIVE STREAMING YOUTUBE ================= */}
-              {/* Video HANYA muncul kalau: (1) kategori ini punya link di LIVE_STREAM_EMBED_URLS,
-                  DAN (2) status pertandingan == "LIVE". Selain itu tampil placeholder info. */}
               {liveStreamEmbedUrl && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
                   {selectedMatch.status === "LIVE" ? (
@@ -702,7 +801,7 @@ const SportPageExternal = () => {
 
               <div>
                 <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
-                  👥 Daftar Pemain
+                  👥 Daftar Starting Line Up
                 </h4>
 
                 {loadingPlayers ? (
@@ -711,103 +810,51 @@ const SportPageExternal = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
-                    {/* ================= TIM A ================= */}
-                    <div className="bg-white border border-slate-200 rounded-xl p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
-                        {selectedMatch.teamA}
-                      </p>
+                    {[
+                      { team: selectedMatch.teamA, players: teamAPlayers },
+                      { team: selectedMatch.teamB, players: teamBPlayers },
+                    ].map(({ team, players }, idx) => {
+                      const lineup = players.filter((p) => selectedPlayerIds.includes(p.id));
+                      return (
+                        <div
+                          key={idx}
+                          className="bg-white border border-slate-200 rounded-xl overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 truncate">
+                              {team}
+                            </p>
+                            {lineup.length > 0 && (
+                              <span className="text-[9px] font-bold text-teal-700 bg-teal-50 border border-teal-200 rounded-full px-1.5 py-0.5 shrink-0">
+                                {lineup.length}
+                              </span>
+                            )}
+                          </div>
 
-                      {/* ⬇️ STARTING LINE-UP: pemain yang DICENTANG pelatih di admin (selectedPlayerIds) */}
-                      <p className="text-[9px] font-black uppercase tracking-widest text-teal-600 mb-1">
-                        ⭐ Starting Line-Up
-                      </p>
-                      {teamAPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
-                        <ul className="space-y-1.5">
-                          {teamAPlayers
-                            .filter((p) => selectedPlayerIds.includes(p.id))
-                            .map((p) => (
-                              <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
-                                <span className="flex items-center gap-1.5 min-w-0">
-                                  <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
-                                  <span className="font-semibold text-slate-700 truncate">{p.name}</span>
-                                </span>
-                              </li>
-                            ))}
-                        </ul>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
-                      )}
-
-                      {/* ⬇️ CADANGAN: pemain yang TIDAK dicentang pelatih (sisa dari selectedPlayerIds) */}
-                      {teamAPlayers.filter((p) => !selectedPlayerIds.includes(p.id)).length > 0 && (
-                        <>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-3 mb-1 pt-2 border-t border-slate-100">
-                            🪑 Cadangan
-                          </p>
-                          <ul className="space-y-1.5">
-                            {teamAPlayers
-                              .filter((p) => !selectedPlayerIds.includes(p.id))
-                              .map((p) => (
-                                <li key={p.id} className="flex items-center justify-between gap-2 text-[11px] opacity-60">
-                                  <span className="flex items-center gap-1.5 min-w-0">
-                                    <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
-                                    <span className="font-semibold text-slate-700 truncate">{p.name}</span>
+                          {lineup.length > 0 ? (
+                            <ul className="divide-y divide-slate-100">
+                              {lineup.map((p) => (
+                                <li
+                                  key={p.id}
+                                  className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 transition-colors"
+                                >
+                                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
+                                    {p.jersey_number}
+                                  </span>
+                                  <span className="text-[11px] font-semibold text-slate-700 truncate">
+                                    {p.name}
                                   </span>
                                 </li>
                               ))}
-                          </ul>
-                        </>
-                      )}
-                    </div>
-
-                    {/* ================= TIM B ================= */}
-                    <div className="bg-white border border-slate-200 rounded-xl p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
-                        {selectedMatch.teamB}
-                      </p>
-
-                      {/* ⬇️ STARTING LINE-UP: pemain yang DICENTANG pelatih di admin (selectedPlayerIds) */}
-                      <p className="text-[9px] font-black uppercase tracking-widest text-teal-600 mb-1">
-                        ⭐ Starting Line-Up
-                      </p>
-                      {teamBPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
-                        <ul className="space-y-1.5">
-                          {teamBPlayers
-                            .filter((p) => selectedPlayerIds.includes(p.id))
-                            .map((p) => (
-                              <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
-                                <span className="flex items-center gap-1.5 min-w-0">
-                                  <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
-                                  <span className="font-semibold text-slate-700 truncate">{p.name}</span>
-                                </span>
-                              </li>
-                            ))}
-                        </ul>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
-                      )}
-
-                      {/* ⬇️ CADANGAN: pemain yang TIDAK dicentang pelatih (sisa dari selectedPlayerIds) */}
-                      {teamBPlayers.filter((p) => !selectedPlayerIds.includes(p.id)).length > 0 && (
-                        <>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-3 mb-1 pt-2 border-t border-slate-100">
-                            🪑 Cadangan
-                          </p>
-                          <ul className="space-y-1.5">
-                            {teamBPlayers
-                              .filter((p) => !selectedPlayerIds.includes(p.id))
-                              .map((p) => (
-                                <li key={p.id} className="flex items-center justify-between gap-2 text-[11px] opacity-60">
-                                  <span className="flex items-center gap-1.5 min-w-0">
-                                    <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
-                                    <span className="font-semibold text-slate-700 truncate">{p.name}</span>
-                                  </span>
-                                </li>
-                              ))}
-                          </ul>
-                        </>
-                      )}
-                    </div>
+                            </ul>
+                          ) : (
+                            <p className="text-[10px] text-slate-400 italic px-3 py-3">
+                              Belum ada pemain terpilih.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -19,10 +19,18 @@ import api from "../services/api";
 // kalau ada cabang external lain yang mau dibuka detailnya juga.
 const DETAIL_MODAL_ENABLED_CATEGORIES = ["basket", "volly"];
 
+// ⬇️ SAKLAR ON/OFF LIVE STREAMING.
+// Set ke `false` untuk SEMENTARA sembunyikan section video YouTube
+// di semua kategori (modal tetap kebuka normal, cuma bagian video-nya
+// yang nggak dirender). Kalau nanti mau dimunculin lagi, tinggal balikin
+// ke `true` — TIDAK PERLU hapus/ubah kode lain sama sekali.
+const SHOW_LIVE_STREAM = false;
+
 // ⬇️ Link live streaming YouTube per kategori.
-// Video HANYA muncul kalau status pertandingan == "LIVE".
-// Kalau kategori belum ada link-nya (misal "volly"), modal tetap kebuka
-// (skor + roster tetap tampil), cuma bagian video-nya nggak dirender.
+// Video HANYA muncul kalau SHOW_LIVE_STREAM === true DAN status
+// pertandingan == "LIVE". Kalau kategori belum ada link-nya (misal
+// "volly"), modal tetap kebuka (skor + roster tetap tampil), cuma
+// bagian video-nya nggak dirender.
 const LIVE_STREAM_EMBED_URLS = {
   basket: "https://www.youtube.com/embed/-P4c8E0P0cU?si=xOMZsvTm0AhSigD6",
   // volly: "https://www.youtube.com/embed/XXXXXXXXXXX",
@@ -48,7 +56,9 @@ const SportPageExternal = () => {
   const [currentPage, setCurrentPage] = useState(0);
 
   const isDetailModalEnabled = DETAIL_MODAL_ENABLED_CATEGORIES.includes(category);
-  const liveStreamEmbedUrl = LIVE_STREAM_EMBED_URLS[category];
+  // ⬅️ Kalau SHOW_LIVE_STREAM = false, anggap saja tidak ada link
+  // untuk kategori manapun, jadi section video otomatis nggak dirender.
+  const liveStreamEmbedUrl = SHOW_LIVE_STREAM ? LIVE_STREAM_EMBED_URLS[category] : undefined;
 
   const normalize = (str) => {
     if (!str) return "";
@@ -714,49 +724,51 @@ const SportPageExternal = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white border border-slate-200 rounded-xl p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
-                        {selectedMatch.teamA}
-                      </p>
-                      {teamAPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
-                        <ul className="space-y-1.5">
-                          {teamAPlayers
-                            .filter((p) => selectedPlayerIds.includes(p.id))
-                            .map((p) => (
-                              <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
-                                <span className="flex items-center gap-1.5 min-w-0">
-                                  <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
-                                  <span className="font-semibold text-slate-700 truncate">{p.name}</span>
-                                </span>
-                              </li>
-                            ))}
-                        </ul>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
-                      )}
-                    </div>
+                    {[
+                      { team: selectedMatch.teamA, players: teamAPlayers },
+                      { team: selectedMatch.teamB, players: teamBPlayers },
+                    ].map(({ team, players }, idx) => {
+                      const lineup = players.filter((p) => selectedPlayerIds.includes(p.id));
+                      return (
+                        <div
+                          key={idx}
+                          className="bg-white border border-slate-200 rounded-xl overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between gap-2 px-3 py-2 bg-slate-50 border-b border-slate-100">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 truncate">
+                              {team}
+                            </p>
+                            {lineup.length > 0 && (
+                              <span className="text-[9px] font-bold text-teal-700 bg-teal-50 border border-teal-200 rounded-full px-1.5 py-0.5 shrink-0">
+                                {lineup.length}
+                              </span>
+                            )}
+                          </div>
 
-                    <div className="bg-white border border-slate-200 rounded-xl p-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 mb-2 truncate">
-                        {selectedMatch.teamB}
-                      </p>
-                      {teamBPlayers.filter((p) => selectedPlayerIds.includes(p.id)).length > 0 ? (
-                        <ul className="space-y-1.5">
-                          {teamBPlayers
-                            .filter((p) => selectedPlayerIds.includes(p.id))
-                            .map((p) => (
-                              <li key={p.id} className="flex items-center justify-between gap-2 text-[11px]">
-                                <span className="flex items-center gap-1.5 min-w-0">
-                                  <span className="font-mono font-bold text-slate-400 shrink-0">#{p.jersey_number}</span>
-                                  <span className="font-semibold text-slate-700 truncate">{p.name}</span>
-                                </span>
-                              </li>
-                            ))}
-                        </ul>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 italic">Belum ada pemain terpilih.</p>
-                      )}
-                    </div>
+                          {lineup.length > 0 ? (
+                            <ul className="divide-y divide-slate-100">
+                              {lineup.map((p) => (
+                                <li
+                                  key={p.id}
+                                  className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 transition-colors"
+                                >
+                                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
+                                    {p.jersey_number}
+                                  </span>
+                                  <span className="text-[11px] font-semibold text-slate-700 truncate">
+                                    {p.name}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-[10px] text-slate-400 italic px-3 py-3">
+                              Belum ada pemain terpilih.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -76,7 +76,7 @@ const SportPageExternal = () => {
     return str.toLowerCase().replace(/[_\-\s]+/g, "");
   };
 
-  const SCHOOL_LOGO_FILES = {
+const SCHOOL_LOGO_FILES = {
     manpurwakarta: "MAN Purwakarta.jpg",
     smafullday: "SMA Fullday.jpg",
     smapgri1purwakarta: "SMA PGRI 1 Purwakarta.jpg",
@@ -92,6 +92,11 @@ const SportPageExternal = () => {
     sman1tegalwaru: "SMAN 1 Tegalwaru.jpg",
     sman1wanayasa: "SMAN 1 Wanayasa.jpg",
     sman2purwakarta: "SMAN 2 Purwakarta.jpg",
+    // ⬅️ FIX: logo SMAN 2 Sukatani (kode "SMANDU") belum ada di map ini,
+    // padahal file-nya sudah tersedia di /public/logosma. Tanpa baris ini,
+    // getSchoolLogoFileName() akan fallback ke partial-match atau
+    // default-club.png.
+    sman2sukatani: "SMAN 2 Sukatani.jpg",
     sman3purwakarta: "SMAN 3 Purwakarta.jpg",
     smanbabakancikao: "SMAN Babakancikao.jpg",
     smasalmuhajirin: "SMAS Al Muhajirin.jpg",

@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 // ============= INDORAMA BRAND TOKENS =============
 const EVENT_DATE_INTERNAL = new Date("2026-07-17T00:00:00");
-const EVENT_DATE_EXTERNAL = new Date("2026-08-01T00:00:00");
+
+// ✅ DIUBAH: Event External sekarang di-set ke tanggal yang SUDAH LEWAT
+// (bukan lagi 2026-08-01 / "besok"), supaya countdown langsung selesai
+// dan halaman menampilkan status "Let's Go!" karena acaranya memang
+// sudah dimulai sekarang.
+const EVENT_DATE_EXTERNAL = new Date("2026-07-30T00:00:00");
 
 // Mapping kode klub (dari API) -> nama file logo di /public/logos
 // PENTING: sesuaikan key di sini dengan kode klub ASLI dari API kamu.
@@ -250,14 +255,6 @@ const HomePage = () => {
 
   // 1. Inisialisasi state dengan mengambil dari localStorage.
   // ✅ FIX: default sekarang "external", bukan "internal".
-  // Sebelumnya tombol "Internal" sudah dihapus dari UI (di-comment),
-  // hanya tersisa tombol "External". Tapi state awal masih fallback ke
-  // "internal", sehingga user baru (yang belum ada localStorage-nya)
-  // melihat daftar kategori INTERNAL (Futsal, Volley, Catur, dst) di
-  // homepage, padahal tombol yang ada cuma "External". User jadi harus
-  // klik tombol "External" dulu secara manual supaya kategori yang benar
-  // (Volly, Basket) muncul. Dengan default "external", first-time visitor
-  // langsung melihat kategori yang benar tanpa perlu klik apa pun.
   const [activeGroup, setActiveGroup] = useState(() => {
     return localStorage.getItem("selectedGroup") || "external";
   });
@@ -321,24 +318,13 @@ const HomePage = () => {
 
   return (
     <div className="w-full min-h-screen relative bg-slate-50 text-slate-800">
-      {/* TOMBOL KLASEMEN (Posisi di pojok kanan atas) */}
-      {/* <button
-        onClick={fetchStandings}
-        className="fixed top-4 right-4 z-50 bg-[#00308F] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-[#ED1C24] transition-all"
-      >
-        Klasemen
-      </button> */}
-
       {/* CONTAINER LOGO */}
       <div className="fixed top-2 left-2 z-[9999] flex items-center gap-4">
-        {/* LOGO INDORAMA */}
         <img
           src="/logo_ifd.png"
           alt="Indorama"
           className="w-28 sm:w-40 drop-shadow-md block"
         />
-
-        {/* LOGO POHON */}
         <img
           src="/pohon.png"
           alt="Pohon"
@@ -420,7 +406,6 @@ const HomePage = () => {
           backgroundImage: `linear-gradient(to bottom, rgba(255, 255, 255, 0.55), rgba(248, 250, 252, 1)), url('/stadium-banner.jpg')`,
         }}
       >
-
         <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-[#00308F]/15 via-transparent to-transparent blur-3xl pointer-events-none" />
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#ED1C24]/10 via-transparent to-transparent blur-3xl pointer-events-none" />
 
@@ -436,46 +421,27 @@ const HomePage = () => {
             2026
           </p>
 
-          {/* Selektor Internal/External */}
-          {/* <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
-              {["internal", "external"].map((group) => (
-                <button
-                  key={group}
-                  onClick={() => handleGroupChange(group)}
-                  className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    activeGroup === group
-                      ? "bg-[#00308F] text-white shadow-md"
-                      : "text-[#8B8D8E] hover:text-[#00308F]"
-                  }`}
-                >
-                  {group === "internal" ? "Internal" : "External"}
-                </button>
-              ))}
-            </div>
-          </div> */}
-
           {/* Selektor External */}
-        <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
-            <button
-              onClick={() => handleGroupChange("external")}
-              className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
-                activeGroup === "external"
-                  ? "bg-[#00308F] text-white shadow-md"
-                  : "text-[#8B8D8E] hover:text-[#00308F]"
-              }`}
-            >
-              External
-            </button>
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-1 p-1 bg-[#DCDAD5]/50 border border-[#DCDAD5] rounded-full">
+              <button
+                onClick={() => handleGroupChange("external")}
+                className={`px-4 sm:px-6 py-1.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  activeGroup === "external"
+                    ? "bg-[#00308F] text-white shadow-md"
+                    : "text-[#8B8D8E] hover:text-[#00308F]"
+                }`}
+              >
+                External
+              </button>
+            </div>
           </div>
-        </div>
 
           <p className="text-xs font-bold text-[#8B8D8E] uppercase tracking-wider mb-3 animate-bounce">
             👇 Pilih Cabang Olahraga untuk Melihat Jadwal 👇
           </p>
 
-{/* BAGIAN CATEGORY SELECTION YANG DIPERBAIKI UNTUK MOBILE */}
+          {/* BAGIAN CATEGORY SELECTION */}
           <div className="mb-8 sm:mb-10 w-full max-w-2xl mx-auto px-4">
             <div
               className={`flex items-center gap-3 p-2 bg-white/60 border border-slate-200/80 backdrop-blur-md rounded-2xl shadow-xl overflow-x-auto overflow-y-hidden snap-x scrollbar-none ${
@@ -498,6 +464,11 @@ const HomePage = () => {
               ))}
             </div>
           </div>
+
+          {/* ✅ COUNTDOWN CARD: karena eventTarget sudah lewat (EVENT_DATE_EXTERNAL
+              di-set ke tanggal sebelum hari ini), getTimeLeft() akan selalu
+              mengembalikan null, sehingga blok "Let's Go!" di bawah ini yang
+              akan tampil, bukan angka hitung mundur. */}
           <div className="w-[85vw] max-w-[260px] sm:max-w-xs mx-auto p-3 sm:p-4 rounded-xl bg-white border-2 border-[#ED1C24]/30 backdrop-blur-xl shadow-md relative">
             <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[7px] sm:text-[8px] font-black uppercase tracking-widest bg-[#ED1C24] text-white px-2 sm:px-2.5 py-0.5 rounded shadow-sm whitespace-nowrap">
               Acara Mulai
